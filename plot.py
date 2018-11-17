@@ -1,5 +1,6 @@
 import math
 from log import Log 
+import pyxel
 class Plot:
 
     def __init__(self, logger):
@@ -41,8 +42,11 @@ class Plot:
                     err += dx - (radius << 1)
             return pixels
 
-    def plot_terrain(self,terrain):
-        for y in terrain.terrain:
-            for x in y:
-                print(x+" "*3,end='')
-            print("\n")
+    def draw_circ(self,x,y,radius,col):
+        pyxel.circ(x + int(pyxel.width/2) ,y + int(pyxel.height/2),radius,col)
+
+    def plot_terrain(self, terrain):
+        for row in terrain.terrain:
+            for point in row:
+                if point.search() == "Star":
+                    self.draw_circ(0,0,point.radius,1)

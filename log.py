@@ -4,6 +4,7 @@ class Log:
 
     def add(self,str):
         self.text.append(str)
+        print(str)
     
     def print(self):
         for str in self.text:
