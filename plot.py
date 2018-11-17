@@ -17,16 +17,18 @@ class Plot:
             dx = 1
             dy = 1
             err = dx - (radius<<1) # https://www.geeksforgeeks.org/left-shift-right-shift-operators-c-cpp/
+            center = list(center)
+            center[0] -= radius
+            center[1] += radius
             while (x >= y):
-                # for every coordinate, we displace by radius to adjust to the (0,0) point being in the top left
-                pixels.append((center[0] + x - int(radius), center[1] + y + int(radius)))
-                pixels.append((center[0] + y - int(radius), center[1] + x + int(radius)))
-                pixels.append((center[0] - y - int(radius), center[1] + x + int(radius)))
-                pixels.append((center[0] - x - int(radius), center[1] + y + int(radius)))
-                pixels.append((center[0] - x - int(radius), center[1] - y + int(radius)))
-                pixels.append((center[0] - y - int(radius), center[1] - x + int(radius)))
-                pixels.append((center[0] + y - int(radius), center[1] - x + int(radius)))
-                pixels.append((center[0] + x - int(radius), center[1] - y + int(radius)))
+                pixels.append((center[0] + x, center[1] + y))
+                pixels.append((center[0] + y, center[1] + x))
+                pixels.append((center[0] - y, center[1] + x))
+                pixels.append((center[0] - x, center[1] + y))
+                pixels.append((center[0] - x, center[1] - y))
+                pixels.append((center[0] - y, center[1] - x))
+                pixels.append((center[0] + y, center[1] - x))
+                pixels.append((center[0] + x, center[1] - y))
             
                 if (err <= 0):
                     y += 1
@@ -42,6 +44,5 @@ class Plot:
     def plot_terrain(self,terrain):
         for y in terrain.terrain:
             for x in y:
-                print(x+"   ",end='')
+                print(x+" "*3,end='')
             print("\n")
-        #print(terrain.terrain)
