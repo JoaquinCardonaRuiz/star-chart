@@ -1,9 +1,51 @@
 import math
 from log import Log 
+import curses
+import configparser
+
 class Plot:
 
     def __init__(self, logger):
         self.logger = logger
+        self.config = configparser.ConfigParser()
+        self.config.read('config.ini')
+
+
+
+    def start(self):
+        scr = curses.initscr()
+        curses.noecho()
+        curses.cbreak()
+        scr.keypad(True)
+        scr.clear()
+        return scr
+
+    def draw_border(self,scr,x,y):
+        for i in range(1,x-1):
+            scr.addstr(0,i,self.config['Chars']['DHorizontal'])
+            scr.addstr(y-1,i,self.config['Chars']['DHorizontal'])
+
+        for j in range(1,y-1):
+            scr.addstr(j,0,self.config['Chars']['DVertical'])
+            scr.addstr(j,x-1,self.config['Chars']['DVertical'])
+
+        scr.addstr(0,0,self.config['Chars']['DUpperLeft'])
+        scr.addstr(0,x-1,self.config['Chars']['DUpperRight'])
+        scr.addstr(y-1,0,self.config['Chars']['DLowerLeft'])
+        # https://stackoverflow.com/questions/36387625/curses-fails-when-calling-addch-on-the-bottom-right-corner
+        try:
+            scr.addstr(y-1,x-1,self.config['Chars']['DLowerRight'])
+        except curses.error as e:
+            pass
+
+        
+    def end(self,scr):
+        curses.nocbreak()
+        scr.keypad(False)
+        curses.echo()
+        curses.endwin()
+
+
 
     def get_circle(self,radius,center=(0,0)):
             # Applies Midpoint circle algorithm
@@ -41,8 +83,12 @@ class Plot:
                     err += dx - (radius << 1)
             return pixels
 
-    def plot_terrain(self,terrain):
-        for y in terrain.terrain:
-            for x in y:
-                print(x+" "*3,end='')
-            print("\n")
+    def draw_circ(self,x,y,radius,col):
+        pass
+        #pyxel.circ(x + int(pyxel.width/2) ,y + int(pyxel.height/2),radius,col)
+
+    def plot_terrain(self, terrain):
+        for row in terrain.terrain:
+            for point in row:
+                if point.search() == "Star":
+                    self.draw_circ(0,0,point.radius,1)
