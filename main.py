@@ -5,6 +5,7 @@ from curses import wrapper
 from time import sleep
 
 logger = Log()
+logger.add("Program started")
 plotter = Plot(logger)
 logger.add("Program started")
 scr = plotter.start()
