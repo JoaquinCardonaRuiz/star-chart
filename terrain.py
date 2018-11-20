@@ -1,5 +1,5 @@
 from plot import Plot
-from entities.star import Star
+from entities.bodies import *
 class Terrain:
     def __init__(self, star_radius):
         self.size = (pyxel.width,pyxel.height)

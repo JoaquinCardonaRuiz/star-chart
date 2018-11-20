@@ -7,7 +7,6 @@ from time import sleep
 logger = Log()
 logger.add("Program started")
 plotter = Plot(logger)
-logger.add("Program started")
 scr = plotter.start()
 
 try:
@@ -20,7 +19,7 @@ try:
                 key = scr.getkey()
                 scr.addstr(2,2,key)
                 if key == "q":
-                    logger
+                    logger.add("Closing Program...")
                     plotter.end(scr)
                     exit()
             else:
