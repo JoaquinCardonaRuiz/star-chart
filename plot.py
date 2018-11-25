@@ -2,18 +2,37 @@ import math
 from log import Log 
 import curses
 import configparser
+import utils
 
 class Plot:
 
     def __init__(self, logger, config):
         self.config = config
+        self.panx = 0
+        self.pany = 0
         logger.add('Plotter initialized')
 
+
+    def pan_camera(self, direction):
+        if direction == 's':
+            self.pany += 1
+        elif direction == 'w':
+            self.pany -= 1
+        elif direction == 'd':
+            self.panx += 1
+        elif direction == 'a':
+            self.panx -= 1
+        elif direction == 'o':
+            self.zoom -= 0.05
+        elif direction == 'p':
+            self.zoom += 0.05
 
     def start(self):
         scr = curses.initscr()
         curses.noecho()
         curses.cbreak()
+        curses.start_color()
+        curses.use_default_colors()
         scr.keypad(True)
         scr.clear()
         return scr
@@ -44,62 +63,35 @@ class Plot:
         curses.endwin()
 
 
-
-
-    def get_circle(self,radius,center=(0,0)):
-            # Applies Midpoint circle algorithm
-            if radius < 6:
-                self.logger.add("Plot error: Radius can't be smaller than 6")
-                return []
-
-            pixels = []
-            x = radius-1
-            y = 0
-            dx = 1
-            dy = 1
-            err = dx - (radius<<1) # https://www.geeksforgeeks.org/left-shift-right-shift-operators-c-cpp/
-            center = list(center)
-            center[0] -= radius
-            center[1] += radius
-            while (x >= y):
-                pixels.append((center[0] + x, center[1] + y))
-                pixels.append((center[0] + y, center[1] + x))
-                pixels.append((center[0] - y, center[1] + x))
-                pixels.append((center[0] - x, center[1] + y))
-                pixels.append((center[0] - x, center[1] - y))
-                pixels.append((center[0] - y, center[1] - x))
-                pixels.append((center[0] + y, center[1] - x))
-                pixels.append((center[0] + x, center[1] - y))
-            
-                if (err <= 0):
-                    y += 1
-                    err += dy
-                    dy += 2
-
-                if (err > 0):
-                    x -= 1
-                    dx += 2
-                    err += dx - (radius << 1)
-            return pixels
-
     def draw_circ(self,x,y,radius,col):
         pass
         #pyxel.circ(x + int(pyxel.width/2) ,y + int(pyxel.height/2),radius,col)
 
-    def draw(self, x, y, str, scr):
+    def draw(self, x, y, str, color, scr):
         try:
-            scr.addstr(y,x*2,str)
+            scr.addstr(-self.pany + y, -self.panx + x*2,str,color)
         except curses.error as e:
             pass
 
+    def draw_orbits(self,scr,terrain):
+        middle = [int(terrain.size[0]/2),int(terrain.size[1]/2)]
+        for r in terrain.orbits:
+            to_add = utils.get_circle(r)
+            for coord in to_add:
+                x,y = middle[0]+coord[0],middle[1]+coord[1]
+                self.draw(x, y, '.',233,scr)
+
     def plot_terrain(self, scr, terrain):
+        #colors from 233 to 254
         for column in terrain.terrain:
             for point in column:
-                #use switch
+                color = 254
+                #TODO use switch
                 if point.search() == "Star":
-                    str = "()"
+                    str = "✹"
                 elif point.search() == "Planet":
-                    str = "[]"
+                    str = "⨁"
                 elif point.search() == "Empty":
-                    str = "  "
-                self.draw(point.x, point.y, str, scr)
+                    str = ""
+                self.draw(point.x, point.y, str, color, scr)
+        self.draw_orbits(scr,terrain)

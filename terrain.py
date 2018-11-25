@@ -5,23 +5,31 @@ import configparser
 
 class Terrain:
     def __init__(self, star_radius,logger,config):
-        self.size = (75,38)
+        self.size = (75,75)
         self.terrain = [[Empty(j,i) for i in range(self.size[1])] for j in range(self.size[0])]
         self.gen_star(star_radius)
         self.config = config
+        self.orbits = []
         self.gen_planets(int(self.config['Constants']['CantPlanets']))
         
     def gen_star(self,star_radius):
         middle = [int(self.size[0]/2),int(self.size[1]/2)]
         self.terrain[middle[0]][middle[1]] = Star(star_radius,middle[0],middle[1])
 
+
     def gen_planets(self, cant):
-        # for i in half the ammount of planets, we create a planet on each side of the screen
+        while len(self.orbits) < cant:
+            r = randint(6,int(self.size[0]/2))
+            if all([(abs(r-c) > 2) for c in self.orbits]):
+                self.orbits.append(r)
+        
+        
+        '''# for i in half the ammount of planets, we create a planet on each side of the screen
         for i in range(int(cant/2)):
             x,y = randint(1,int(self.size[0]/2))-1, randint(0,self.size[1]-1)
             self.terrain[x][y] = Planet(2, x, y)
             x,y = randint(int(self.size[0]/2),self.size[0])-1, randint(0,self.size[1]-1)
-            self.terrain[x][y] = Planet(2, x, y)
+            self.terrain[x][y] = Planet(2, x, y)'''
 
     
     def add_circle(self,plotter,radius,center=(0,0), char='#'):

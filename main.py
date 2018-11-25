@@ -16,19 +16,21 @@ terrain = Terrain(5,logger,config)
 try:
     while True:
         y, x = scr.getmaxyx()
-        sleep(0.1)
+        sleep(0.001)
         scr.clear()
         if y >= 38 and x >= 150:
             plotter.draw_border(scr,x,y)
             plotter.plot_terrain(scr, terrain)
             #CODE BEFORE HERE
             key = scr.getkey()
-            scr.addstr(2,2,key)
+            #scr.addstr(2,2,key)
             if key == "q":
                 logger.add("Closing Program...")
                 plotter.end(scr)
                 logger.print()
                 exit()
+            else:
+                plotter.pan_camera(key)
         else:
             string = "Window must be at least 150x38"
             scr.addstr(int(y/2),int(x/2) - int(len(string)/2),string)

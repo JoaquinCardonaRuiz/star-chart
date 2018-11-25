@@ -38,3 +38,11 @@ class Planet(Empty):
     
     def search(self):
         return "Planet"
+
+class Orbit(Empty):
+    def __init__(self,x,y):
+        Empty.__init__(self,x,y)
+        self.char = '..'
+
+    def search(self):
+        return "Orbit"
