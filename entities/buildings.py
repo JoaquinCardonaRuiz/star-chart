@@ -27,3 +27,4 @@ class TerraformingSatellite(OrbitalBuilding):
 #LAND BUILDINGS
 class LandBuilding(Building):
     pass
+

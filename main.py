@@ -3,35 +3,37 @@ from plot import Plot
 from terrain import Terrain
 from curses import wrapper
 from time import sleep
+import configparser
 
 logger = Log()
 logger.add("Program started")
-plotter = Plot(logger)
+config = configparser.ConfigParser()
+config.read('config.ini')
+plotter = Plot(logger,config)
 scr = plotter.start()
+terrain = Terrain(5,logger,config)
 
 try:
     while True:
-            y, x = scr.getmaxyx()
-            sleep(0.1)
-            scr.clear()
-            if y >= 35 and x >= 135:
-                plotter.draw_border(scr,x,y)
-                key = scr.getkey()
-                scr.addstr(2,2,key)
-                if key == "q":
-                    logger.add("Closing Program...")
-                    plotter.end(scr)
-                    exit()
-            else:
-                string = "Window must be at least 135x35"
-                scr.addstr(int(y/2),int(x/2) - int(len(string)/2),string)
-            scr.refresh()
+        y, x = scr.getmaxyx()
+        sleep(0.1)
+        scr.clear()
+        if y >= 38 and x >= 150:
+            plotter.draw_border(scr,x,y)
+            plotter.plot_terrain(scr, terrain)
+            #CODE BEFORE HERE
+            key = scr.getkey()
+            scr.addstr(2,2,key)
+            if key == "q":
+                logger.add("Closing Program...")
+                plotter.end(scr)
+                logger.print()
+                exit()
+        else:
+            string = "Window must be at least 150x38"
+            scr.addstr(int(y/2),int(x/2) - int(len(string)/2),string)
+        scr.refresh()
 except:
     raise
 finally:    
     plotter.end(scr)
-
-'''
-terrain = Terrain(5)
-plotter.plot_terrain(terrain)
-'''

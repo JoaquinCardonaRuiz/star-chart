@@ -52,3 +52,7 @@ class Protector(Ship):
 
 class SupplyShip(Ship):
     pass
+
+class TestShip(Ship):
+    #A cheap, customizable ship to test weapons on
+    pass

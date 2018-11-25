@@ -5,11 +5,9 @@ import configparser
 
 class Plot:
 
-    def __init__(self, logger):
-        self.logger = logger
-        self.config = configparser.ConfigParser()
-        self.config.read('config.ini')
-
+    def __init__(self, logger, config):
+        self.config = config
+        logger.add('Plotter initialized')
 
 
     def start(self):
@@ -44,6 +42,7 @@ class Plot:
         scr.keypad(False)
         curses.echo()
         curses.endwin()
+
 
 
 
@@ -87,8 +86,20 @@ class Plot:
         pass
         #pyxel.circ(x + int(pyxel.width/2) ,y + int(pyxel.height/2),radius,col)
 
-    def plot_terrain(self, terrain):
-        for row in terrain.terrain:
-            for point in row:
+    def draw(self, x, y, str, scr):
+        try:
+            scr.addstr(y,x*2,str)
+        except curses.error as e:
+            pass
+
+    def plot_terrain(self, scr, terrain):
+        for column in terrain.terrain:
+            for point in column:
+                #use switch
                 if point.search() == "Star":
-                    self.draw_circ(0,0,point.radius,1)
+                    str = "()"
+                elif point.search() == "Planet":
+                    str = "[]"
+                elif point.search() == "Empty":
+                    str = "  "
+                self.draw(point.x, point.y, str, scr)
