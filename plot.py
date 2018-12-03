@@ -3,29 +3,34 @@ from log import Log
 import curses
 import configparser
 import utils
-
+import time
+from random import randint
 class Plot:
 
-    def __init__(self, logger, config):
+    def __init__(self, logger, config, terrain):
+        self.middle = [int(terrain.size[0]/2),int(terrain.size[1]/2)]
+        self.terrain = terrain
         self.config = config
-        self.panx = 0
-        self.pany = 0
+        self.panx = terrain.size[0] - 75
+        self.posx = self.middle[0]
+        self.posy = self.middle[1]
+        self.pany = 18 + int(0.5 * ((terrain.size[1] - 75))) 
         logger.add('Plotter initialized')
 
 
     def pan_camera(self, direction):
-        if direction == 's':
-            self.pany += 1
-        elif direction == 'w':
-            self.pany -= 1
-        elif direction == 'd':
-            self.panx += 1
-        elif direction == 'a':
-            self.panx -= 1
-        elif direction == 'o':
-            self.zoom -= 0.05
-        elif direction == 'p':
-            self.zoom += 0.05
+        if direction == 's' and self.posy < self.terrain.size[1]-1:
+            self.posy += 1
+            self.pany += 0.8
+        elif direction == 'w' and self.posy > 0:
+            self.posy -= 1
+            self.pany -= 0.8
+        elif direction == 'd' and self.posx < self.terrain.size[0] - 1:
+            self.posx += 1
+            self.panx += 1.6
+        elif direction == 'a' and self.posx > 0:
+            self.posx -= 1
+            self.panx -= 1.6
 
     def start(self):
         scr = curses.initscr()
@@ -34,6 +39,11 @@ class Plot:
         curses.start_color()
         curses.use_default_colors()
         scr.keypad(True)
+        curses.init_pair(1, curses.COLOR_RED, -1)
+        curses.init_pair(2, curses.COLOR_BLUE, -1)
+        curses.init_pair(3, curses.COLOR_GREEN, -1)
+        curses.init_pair(4, curses.COLOR_WHITE, -1)
+        curses.init_pair(5, curses.COLOR_WHITE, -1)
         scr.clear()
         return scr
 
@@ -69,29 +79,45 @@ class Plot:
 
     def draw(self, x, y, str, color, scr):
         try:
-            scr.addstr(-self.pany + y, -self.panx + x*2,str,color)
+            scr.addstr(-int(self.pany) + y, -int(self.panx) + x*2,str,curses.color_pair(color))
         except curses.error as e:
             pass
 
-    def draw_orbits(self,scr,terrain):
-        middle = [int(terrain.size[0]/2),int(terrain.size[1]/2)]
-        for r in terrain.orbits:
+    def draw_ui(self, x, y, str, color, scr):
+        try:
+            scr.addstr(y+1, x*2 + 1,str,curses.color_pair(color))
+        except curses.error as e:
+            pass
+
+    def draw_orbits(self,scr):
+        for r in self.terrain.orbits:
             to_add = utils.get_circle(r)
             for coord in to_add:
-                x,y = middle[0]+coord[0],middle[1]+coord[1]
-                self.draw(x, y, '.',233,scr)
+                x,y = self.middle[0]+coord[0],self.middle[1]+coord[1]
+                self.draw(x, y, '.',4,scr)
+                
+    def draw_radius(self, ship, scr):
+        to_add = utils.get_circle(ship.fuel,False)
+        for coord in to_add:
+            x,y = ship.x + coord[0], ship.y + coord[1]
+            #self.draw(x, y, '░',233,scr)
+            self.draw(x, y, '.',2,scr)
+    
+    def draw_pointer(self,scr):
+        self.draw(self.posx,self.posy, str(self.posx)+','+str(self.posy) ,5, scr)
+        
 
-    def plot_terrain(self, scr, terrain):
+    def plot_terrain(self, scr):
         #colors from 233 to 254
-        for column in terrain.terrain:
+        self.draw_orbits(scr)
+        current = self.terrain.terrain[self.posx][self.posy]
+        if current.search() == "Ship":
+            self.draw_radius(current,scr)
+        for column in self.terrain.terrain:
             for point in column:
-                color = 254
-                #TODO use switch
-                if point.search() == "Star":
-                    str = "✹"
-                elif point.search() == "Planet":
-                    str = "⨁"
-                elif point.search() == "Empty":
-                    str = ""
-                self.draw(point.x, point.y, str, color, scr)
-        self.draw_orbits(scr,terrain)
+                if point.search():
+                    color = 5
+                    string = point.char
+                    self.draw(point.x, point.y, string, color, scr)
+        self.draw_pointer(scr)
+        self.draw_ui(0,0, str(int(self.panx))+','+str(int(self.pany)) ,5, scr)

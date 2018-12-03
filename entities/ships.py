@@ -2,6 +2,9 @@ class Ship:
     def __init__(self, health):
         pass
 
+    def search(self):
+        return "Ship"
+
 class CapitalShip(Ship):
     #Main ship in fleet. Self-sustaining, capable of ship and colony production, heavily armored
     pass
@@ -55,4 +58,10 @@ class SupplyShip(Ship):
 
 class TestShip(Ship):
     #A cheap, customizable ship to test weapons on
+    #░
+    def __init__(self,x,y):
+        self.x = x
+        self.y = y
+        self.fuel = 16
+        self.char = '⍙'
     pass

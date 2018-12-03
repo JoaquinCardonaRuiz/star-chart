@@ -9,18 +9,18 @@ logger = Log()
 logger.add("Program started")
 config = configparser.ConfigParser()
 config.read('config.ini')
-plotter = Plot(logger,config)
-scr = plotter.start()
 terrain = Terrain(5,logger,config)
+plotter = Plot(logger,config, terrain)
+scr = plotter.start()
 
 try:
     while True:
         y, x = scr.getmaxyx()
-        sleep(0.001)
+        #sleep(0.001)
         scr.clear()
         if y >= 38 and x >= 150:
+            plotter.plot_terrain(scr)
             plotter.draw_border(scr,x,y)
-            plotter.plot_terrain(scr, terrain)
             #CODE BEFORE HERE
             key = scr.getkey()
             #scr.addstr(2,2,key)

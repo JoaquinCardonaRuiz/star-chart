@@ -2,15 +2,17 @@ class Empty:
     def __init__(self, x, y):
         self.x = x
         self.y = y
+        self.char = ''
     
     def search(self):
-        return("Empty")
+        return(False)
 
 class Star(Empty):
     def __init__(self, radius,x,y):
         Empty.__init__(self,x,y)
         self.radius = radius
         self.energy = radius*10
+        self.char = '✹'
     
     def search(self):
         return "Star"
@@ -30,6 +32,7 @@ class Planet(Empty):
         Empty.__init__(self,x,y)
         self.size = size
         self.type = planet_type
+        self.char = '⨁'
         if self.type == None:
             self.gen_type()
 
@@ -39,10 +42,10 @@ class Planet(Empty):
     def search(self):
         return "Planet"
 
-class Orbit(Empty):
-    def __init__(self,x,y):
+class Marker(Empty):
+    def __init__(self, x, y):
         Empty.__init__(self,x,y)
-        self.char = '..'
-
+        self.char = "AA"
+    
     def search(self):
-        return "Orbit"
+        return "Marker"

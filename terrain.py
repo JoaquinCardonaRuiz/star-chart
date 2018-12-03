@@ -1,17 +1,27 @@
 from plot import Plot
 from entities.bodies import *
+from entities.ships import *
 from random import randint
 import configparser
 
 class Terrain:
     def __init__(self, star_radius,logger,config):
-        self.size = (75,75)
+        self.size = (100,100)
         self.terrain = [[Empty(j,i) for i in range(self.size[1])] for j in range(self.size[0])]
         self.gen_star(star_radius)
         self.config = config
         self.orbits = []
         self.gen_planets(int(self.config['Constants']['CantPlanets']))
+        self.spawn_tests()
         
+
+    def spawn_tests(self):
+        self.terrain[62][20] = TestShip(62,20)
+        self.terrain[0][0] = Marker(0,0)
+        self.terrain[0][0] = Marker(self.size[0],0)
+        self.terrain[0][0] = Marker(0,self.size[1])
+        self.terrain[0][0] = Marker(self.size[0],self.size[1])
+
     def gen_star(self,star_radius):
         middle = [int(self.size[0]/2),int(self.size[1]/2)]
         self.terrain[middle[0]][middle[1]] = Star(star_radius,middle[0],middle[1])
@@ -20,7 +30,7 @@ class Terrain:
     def gen_planets(self, cant):
         while len(self.orbits) < cant:
             r = randint(6,int(self.size[0]/2))
-            if all([(abs(r-c) > 2) for c in self.orbits]):
+            if all([(abs(r-c) > 4) for c in self.orbits]):
                 self.orbits.append(r)
         
         

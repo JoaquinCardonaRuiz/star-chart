@@ -9,11 +9,8 @@ def dist(x1,y1,x2,y2):
     #Gets two coordinates and returns the distance between them
     return math.sqrt(pow((x2-x1),2)+pow((y2-y1),2))
 
-def get_circle(radius,center=(0,0)):
+def get_circle(radius,fill = False,center=(0,0)):
         # Applies Midpoint circle algorithm
-        if radius < 6:
-            return []
-
         pixels = []
         x = radius-1
         y = 0
@@ -24,14 +21,20 @@ def get_circle(radius,center=(0,0)):
         center[0] -= radius
         center[1] += radius
         while (x >= y):
-            pixels.append((x, y))
-            pixels.append((y, x))
-            pixels.append((-y, x))
-            pixels.append((-x, y))
-            pixels.append((-x, -y))
-            pixels.append((-y, -x))
-            pixels.append((+y, -x))
-            pixels.append((x, -y))
+            if fill:
+                for i in range(-x,x):
+                    for j in range(-y,y):
+                        pixels.append((i,j))
+                        pixels.append((j,i))
+            else:
+                pixels.append((x, y))
+                pixels.append((-x, y))
+                pixels.append((y, x))
+                pixels.append((-y, x))
+                pixels.append((-x, -y))
+                pixels.append((-y, -x))
+                pixels.append((+y, -x))
+                pixels.append((x, -y))
         
             if (err <= 0):
                 y += 1
