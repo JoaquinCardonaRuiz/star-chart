@@ -1,15 +1,13 @@
 class Empty:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+    def __init__(self):
         self.char = ''
     
     def search(self):
         return(False)
 
 class Star(Empty):
-    def __init__(self, radius,x,y):
-        Empty.__init__(self,x,y)
+    def __init__(self, radius):
+        Empty.__init__(self)
         self.radius = radius
         self.energy = radius*10
         self.char = '✹'
@@ -28,8 +26,8 @@ class Asteroid(Empty):
         return "Asteroid"
 
 class Planet(Empty):
-    def __init__(self, size, x, y, planet_type = None):
-        Empty.__init__(self,x,y)
+    def __init__(self, size, planet_type = None):
+        Empty.__init__(self)
         self.size = size
         self.type = planet_type
         self.char = '⨁'
@@ -43,8 +41,8 @@ class Planet(Empty):
         return "Planet"
 
 class Marker(Empty):
-    def __init__(self, x, y):
-        Empty.__init__(self,x,y)
+    def __init__(self):
+        Empty.__init__(self)
         self.char = "AA"
     
     def search(self):

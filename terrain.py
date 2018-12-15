@@ -7,7 +7,7 @@ import configparser
 class Terrain:
     def __init__(self, star_radius,logger,config):
         self.size = (100,100)
-        self.terrain = [[Empty(j,i) for i in range(self.size[1])] for j in range(self.size[0])]
+        self.terrain = [[Empty() for i in range(self.size[1])] for j in range(self.size[0])]
         self.gen_star(star_radius)
         self.config = config
         self.orbits = []
@@ -16,15 +16,25 @@ class Terrain:
         
 
     def spawn_tests(self):
-        self.terrain[62][20] = TestShip(62,20)
-        self.terrain[0][0] = Marker(0,0)
-        self.terrain[0][0] = Marker(self.size[0],0)
-        self.terrain[0][0] = Marker(0,self.size[1])
-        self.terrain[0][0] = Marker(self.size[0],self.size[1])
+        self.terrain[62][20] = TestShip()
+        self.terrain[0][0] = Marker()
+        self.terrain[0][0] = Marker()
+        self.terrain[0][0] = Marker()
+        self.terrain[0][0] = Marker()
+
+
+    def move(self,x1,y1,x2,y2):
+        #Move logic to logic.py
+        if self.terrain[x2][y2].search():
+            pass
+        elif self.terrain[x1][y1].search():
+            self.terrain[x2][y2] = self.terrain[x1][y1]
+            self.terrain[x1][y1] = Empty()
+        
 
     def gen_star(self,star_radius):
         middle = [int(self.size[0]/2),int(self.size[1]/2)]
-        self.terrain[middle[0]][middle[1]] = Star(star_radius,middle[0],middle[1])
+        self.terrain[middle[0]][middle[1]] = Star(star_radius)
 
 
     def gen_planets(self, cant):

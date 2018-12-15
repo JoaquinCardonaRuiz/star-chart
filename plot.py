@@ -31,6 +31,11 @@ class Plot:
         elif direction == 'a' and self.posx > 0:
             self.posx -= 1
             self.panx -= 1.6
+        elif direction == 'e' and self.posy > 0 and self.posx < self.terrain.size[0] - 1:
+            self.posx += 1
+            self.panx += 1.6
+            self.posy -= 1
+            self.pany -= 0.8
 
     def start(self):
         scr = curses.initscr()
@@ -99,25 +104,26 @@ class Plot:
     def draw_radius(self, ship, scr):
         to_add = utils.get_circle(ship.fuel,False)
         for coord in to_add:
-            x,y = ship.x + coord[0], ship.y + coord[1]
+            x,y = self.posx + coord[0], self.posy + coord[1]
             #self.draw(x, y, '░',233,scr)
             self.draw(x, y, '.',2,scr)
     
     def draw_pointer(self,scr):
-        self.draw(self.posx,self.posy, str(self.posx)+','+str(self.posy) ,5, scr)
-        
+        #self.draw(self.posx,self.posy, str(self.posx)+','+str(self.posy) ,5, scr)
+        self.draw(self.posx,self.posy, '░',5, scr)
 
     def plot_terrain(self, scr):
         #colors from 233 to 254
         self.draw_orbits(scr)
+        self.draw_pointer(scr)
         current = self.terrain.terrain[self.posx][self.posy]
         if current.search() == "Ship":
             self.draw_radius(current,scr)
-        for column in self.terrain.terrain:
-            for point in column:
+        for column in range(len(self.terrain.terrain)):
+            for row in range(len(self.terrain.terrain[column])):
+                point = self.terrain.terrain[column][row]
                 if point.search():
                     color = 5
                     string = point.char
-                    self.draw(point.x, point.y, string, color, scr)
-        self.draw_pointer(scr)
-        self.draw_ui(0,0, str(int(self.panx))+','+str(int(self.pany)) ,5, scr)
+                    self.draw(column, row, string, color, scr)
+        #self.draw_ui(0,0, str(int(self.panx))+','+str(int(self.pany)) ,5, scr)
