@@ -7,6 +7,9 @@ class Ship:
     def search(self):
         return "Ship"
 
+    def deplete(self,dist):
+        self.fuel -= dist
+
 class Fleet():
     def __init__(self, ships):
         self.ships = ships

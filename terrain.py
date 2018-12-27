@@ -3,6 +3,7 @@ from entities.bodies import *
 from entities.ships import *
 from random import randint
 import configparser
+from utils import dist,get_circle
 
 class Terrain:
     def __init__(self, star_radius,logger,config):
@@ -16,7 +17,7 @@ class Terrain:
         
 
     def spawn_tests(self):
-        self.terrain[62][20] = TestShip()
+        self.terrain[60][40] = TestShip()
         self.terrain[0][0] = Marker()
         self.terrain[0][0] = Marker()
         self.terrain[0][0] = Marker()
@@ -24,12 +25,15 @@ class Terrain:
 
 
     def move(self,x1,y1,x2,y2):
-        #Move logic to logic.py
+
+        #TODO: Move logic to logic.py
+        distance = dist(x1,y1,x2,y2)
         if self.terrain[x2][y2].search():
             pass
-        elif self.terrain[x1][y1].search():
+        elif self.terrain[x1][y1].search() and distance <= self.terrain[x1][y1].fuel:
             self.terrain[x2][y2] = self.terrain[x1][y1]
             self.terrain[x1][y1] = Empty()
+            self.terrain[x2][y2].deplete(distance)
         
 
     def gen_star(self,star_radius):
@@ -38,18 +42,21 @@ class Terrain:
 
 
     def gen_planets(self, cant):
+        middle = [int(self.size[0]/2),int(self.size[1]/2)]
         while len(self.orbits) < cant:
             r = randint(6,int(self.size[0]/2))
+            #If all the distances between orbits are greater than 4
             if all([(abs(r-c) > 4) for c in self.orbits]):
                 self.orbits.append(r)
+        self.orbits.sort()
+        for d in self.orbits[:-1]:
+            orbit_coords = get_circle(d)
+            coord = orbit_coords[randint(0,len(orbit_coords) - 1)]
+            self.terrain[middle[0] + coord[1]][middle[1] + coord[0]] = Planet(4)
+            self.terrain[middle[0] - coord[1]][middle[1] - coord[0]] = Planet(4)
         
-        
-        '''# for i in half the ammount of planets, we create a planet on each side of the screen
-        for i in range(int(cant/2)):
-            x,y = randint(1,int(self.size[0]/2))-1, randint(0,self.size[1]-1)
-            self.terrain[x][y] = Planet(2, x, y)
-            x,y = randint(int(self.size[0]/2),self.size[0])-1, randint(0,self.size[1]-1)
-            self.terrain[x][y] = Planet(2, x, y)'''
+        self.terrain[middle[0]][middle[1]+self.orbits[-1]] = CapitalPlanet(4)
+        self.terrain[middle[0]][middle[1]-self.orbits[-1]] = CapitalPlanet(4)
 
     
     def add_circle(self,plotter,radius,center=(0,0), char='#'):
