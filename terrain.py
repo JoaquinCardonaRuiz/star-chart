@@ -6,6 +6,16 @@ import configparser
 from utils import dist,get_circle
 
 class Terrain:
+    """ Holds the state state of the StarChart board.
+
+    Class variables:
+        size    -- Width and height of the board, in tiles
+        terrain -- Two-dimmensional array which holds the objects on the board
+        config  -- Config file reader
+        orbits  -- An array of integers which holds the radius of the orbits around the star
+                   Planets are generated along these orbits
+
+    """
     def __init__(self, star_radius,logger,config):
         self.size = (100,100)
         self.terrain = [[Empty() for i in range(self.size[1])] for j in range(self.size[0])]
@@ -17,6 +27,9 @@ class Terrain:
         
 
     def spawn_tests(self):
+        """Spawn test objects on the board."""
+
+        #TODO: Create spawn(x,y,Object)
         self.terrain[60][40] = TestShip()
         self.terrain[0][0] = Marker()
         self.terrain[0][0] = Marker()
@@ -25,6 +38,7 @@ class Terrain:
 
 
     def move(self,x1,y1,x2,y2):
+        """Move object in terrain[x1][y1] to terrain[x2][y2]."""
 
         #TODO: Move logic to logic.py
         distance = dist(x1,y1,x2,y2)
@@ -37,11 +51,18 @@ class Terrain:
         
 
     def gen_star(self,star_radius):
+        """Spawns star in the middle of the board."""
+
         middle = [int(self.size[0]/2),int(self.size[1]/2)]
         self.terrain[middle[0]][middle[1]] = Star(star_radius)
 
 
     def gen_planets(self, cant):
+        """Spawns planets along the generated orbits.
+        
+        Selects a random point in an orbit and creates a planet there an in its polar oppposite
+        """
+
         middle = [int(self.size[0]/2),int(self.size[1]/2)]
         while len(self.orbits) < cant:
             r = randint(6,int(self.size[0]/2))
@@ -58,13 +79,13 @@ class Terrain:
         self.terrain[middle[0]][middle[1]+self.orbits[-1]] = CapitalPlanet(4)
         self.terrain[middle[0]][middle[1]-self.orbits[-1]] = CapitalPlanet(4)
 
-    
-    def add_circle(self,plotter,radius,center=(0,0), char='#'):
-        coordinates = plotter.get_circle(radius,center)
-        for c in coordinates:
-            self.terrain[c[0]][c[1]] = char
 
     def orbit(self):
+        """Causes objects around a planet to orbit along the surounding tiles each turn.
+        
+        Not in use.
+        """
+
         for x in range(len(self.terrain)):
             for y in range(len(self.terrain[0])):
                 if self.terrain[x][y].search() == "Planet":

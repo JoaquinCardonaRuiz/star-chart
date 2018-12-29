@@ -1,5 +1,6 @@
 import curses
-class UI():
+
+class Panel():
 
     def __init__(self, lines, direction):
         self.lines = lines
@@ -116,3 +117,21 @@ class UI():
                 scr.addstr(y- (self.border[1]//2)-1, margin+3+shift+(2*i),self.lines[i],curses.color_pair(color))
                 shift += len(self.lines[i])
         
+
+class Window():
+    def __init__(self,width,height):
+        self.width = width
+        self.height = height
+        
+class Static_Window(Window):
+    def __init__(self,x_margin,y_margin):
+        width,height = self.get_size(x_margin,y_margin)
+        Window.__init__(self,width,height)
+    
+    def get_size(self,x_margin,y_margin):
+        return (x_margin,y_margin)
+
+class Floating_Window(Window):
+    def __init__(self,x,y,width,height):
+        x,y = self.get_size(x_margin,y_margin)
+        Window.__init__(self,x,y)

@@ -1,4 +1,6 @@
 class Log:
+    """Logging module for StarChart"""
+
     def __init__(self):
         self.text = []
 

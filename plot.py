@@ -4,12 +4,27 @@ import curses
 import configparser
 import utils
 import time
-from ui import UI
+from ui import Panel
 from random import randint
 
 class Plot:
+    """Graphics module for StarChart. Handles drawing all elements.
+    
+    Class variables:
+        x,y         -- Screen width and height
+        posx, posy  -- Cursor coordinates on the board (0,0 in upper-left corner)
+        panx, pany  -- Camera displacement from center 
+        middle      -- Coordinates of the center of the board
+        terrain     -- Instance of terrain class (terrain.py), which holds board state
+        config      -- Config file reader
+        uis         -- Array of user interface elements
+    """
 
     def __init__(self, logger, config, terrain):
+
+        #TODO: Don't keep middle as an instance variable
+        #TODO: Reestructure UI elements' storage
+        #TODO: Create dict with ui elements {'right': UI(blah,right), 'bottom': UI(blah, bottom...)}
         self.x ,self.y, self.panx, self.pany, self.posx, self.posy = 0,0,0,0,0,0
         self.middle = [int(terrain.size[0]/2),int(terrain.size[1]/2)]
         self.terrain = terrain
@@ -19,6 +34,9 @@ class Plot:
 
 
     def pan_camera(self, direction):
+        """Takes a direction in the form of a character and moves cursor and camera appropriately."""
+
+        #TODO: Rename method. It moves the cursor as well as panning the camera
         if direction == 's' and self.posy < self.terrain.size[1]-1:
             self.posy += 1
             self.pany += 0.8
@@ -38,6 +56,12 @@ class Plot:
             self.pany -= 0.8
 
     def start(self,logger):
+        """Initializes graphics engine, and returns an instance of the curses Screen class.
+        
+        Sets starting positions for cursor and camera, initializes color profiles and terminal settigs.
+        """
+
+        #TODO: have scr be saved in plotter, instead of returning it
         scr = curses.initscr()
         curses.noecho()
         curses.cbreak()
@@ -60,6 +84,8 @@ class Plot:
         return scr
 
     def draw_border(self,scr):
+        """Draws the border that surrounds the screen."""
+
         for i in range(1,self.x-1):
             scr.addstr(0,i,self.config['Chars']['DHorizontal'])
             scr.addstr(self.y,i,self.config['Chars']['DHorizontal'])
@@ -81,30 +107,48 @@ class Plot:
 
         
     def end(self,scr):
+        """Terminates graphics engine cleanly"""
+
         curses.nocbreak()
         scr.keypad(False)
         curses.echo()
         curses.endwin()
 
 
-    def draw_circ(self,x,y,radius,col):
-        pass
-        #pyxel.circ(x + int(pyxel.width/2) ,y + int(pyxel.height/2),radius,col)
-
     def draw(self, x, y, str, color, scr):
+        """Draws a string or character on the screen.
+        
+        Keyword Arguments:
+            x,y     -- Coordinates where first character will be drawn
+            str     -- String or character to draw
+            color   -- Color profile to use
+            scr     -- Instance of the Curses Screen object. The screen to draw on
+        """
+
+        #TODO: don't get scr as an argument, move scr to plotter
         try:
             scr.addstr(-int(self.pany) + y, -int(self.panx) + x*2,str,curses.color_pair(color))
         except curses.error as e:
             pass
 
+
     def draw_orbits(self,scr):
+        """ Draws the orbits stored in the Terrain instance around the star."""
+
+        #TODO: use character from config file
+        #TODO: don't get scr as an argument, move scr to plotter
         for r in self.terrain.orbits:
             to_add = utils.get_circle(r)
             for coord in to_add:
                 x,y = self.middle[0]+coord[0],self.middle[1]+coord[1]
                 self.draw(x, y, '.',4,scr)
                 
+
     def draw_radius(self, ship, scr):
+        """ Draws a circle around a ship indicating where it can move.
+        
+        Gets called when cursor is on top of ship. Calculates radius from ship's fuel.
+        """
         to_add = utils.get_circle(ship.fuel,False)
         for coord in to_add:
             x,y = self.posx + coord[0], self.posy + coord[1]
@@ -112,9 +156,12 @@ class Plot:
             self.draw(x, y, '.',2,scr)
 
     def draw_lock(self, ship, scr,cx,cy):
+        """ Draws a circle around a ship indicating where it can move when locked onto.
+        
+        Gets called when cursor is locked on ship. Calculates radius from ship's fuel.
+        """
 
         #TODO: merge with draw_radius
-
         to_add = utils.get_circle(ship.fuel,False)
         for coord in to_add:
             x,y = cx + coord[0], cy + coord[1]
@@ -122,22 +169,34 @@ class Plot:
             self.draw(x, y, '.',3,scr)
     
     def draw_pointer(self,scr):
-        #self.draw(self.posx,self.posy, str(self.posx)+','+str(self.posy) ,5, scr)
+        """Draws cursor on screen."""
+
+        #TODO: use different char for cursor when moving ship
+        #TODO: rename to draw_cursor ?
+        #TODO: read char from config file
         self.draw(self.posx,self.posy, '░',4, scr)
 
     
     def draw_UI(self,scr):
-        test_ui = UI(["Ships", "Production","Resources"],"Left")
-        test_ui_right = UI(["Colonies","Research","Pause"],"Right")
-        test_ui_top = UI(["Map", "Info","Ship","Battle","Tech"],"Top")
-        test_ui_bottom = UI(["Next Turn"],"Bottom")
+        """Draws UI menus.
+        
+        Currently only draws placeholders.
+        """
+
+        #TODO: Reestructure UI elements' storage
+        test_ui = Panel(["Ships", "Production","Resources"],"Left")
+        test_ui_right = Panel(["Colonies","Research","Pause"],"Right")
+        test_ui_top = Panel(["Map", "Info","Ship","Battle","Tech"],"Top")
+        test_ui_bottom = Panel(["Next Turn"],"Bottom")
         test_ui.draw(scr,self.x,self.y)
         test_ui_right.draw(scr,self.x,self.y)
         test_ui_top.draw(scr,self.x,self.y)
         test_ui_bottom.draw(scr,self.x,self.y)
 
     def plot_terrain(self, scr):
-        #colors from 233 to 254
+        """Draws the state of the board, along with the orbit, pointers and ship's movement radius."""
+        
+        #TODO: rename to draw_state and create a new plot_terrain to handle the board
         self.draw_orbits(scr)
         self.draw_pointer(scr)
         current = self.terrain.terrain[self.posx][self.posy]
@@ -150,3 +209,4 @@ class Plot:
                     color = 4
                     string = point.char
                     self.draw(column, row, string, color, scr)
+        #self.terrain.orbit()
