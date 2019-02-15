@@ -28,3 +28,12 @@ class TerraformingSatellite(OrbitalBuilding):
 class LandBuilding(Building):
     pass
 
+class Rail(LandBuilding):
+    #╩╦╩╦╩╦╩╦╩╦╩╦╩╦╩╦╩╦╩╦╩
+    pass
+
+class Dome(LandBuilding):
+    pass
+
+class LaunchPad(LandBuilding):
+    pass

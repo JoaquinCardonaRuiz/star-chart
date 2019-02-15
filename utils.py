@@ -1,5 +1,8 @@
 from random import *
 import math
+from noise import pnoise2
+from noise import snoise2
+
 
 def populate(freq):
     #Gets a value freq between 1 and 0, and returns True or False with probability of True equal to freq
@@ -47,3 +50,27 @@ def get_circle(radius,fill = False,center=(0,0)):
                 dx += 2
                 err += dx - (radius << 1)
         return pixels
+
+
+def gen_height_map(size,jump,alpha):
+    #jump shoud vary btw 0.04 and 0.8
+    #alpha between 1 and 2
+    #h = seed
+    h = randint(0,100)+(randint(0,1000)/1000)
+    t = []
+    for i in range(size):
+        r=[]
+        for j in range(size):
+            r.append(abs(pnoise2(h+i*jump,h+j*jump)) * alpha)
+        t.append(r)
+    return t
+
+
+def show(t):
+    for i in t:
+        for j in i:
+            if   j < 0.25: print("░░",end = '')
+            elif j < 0.50: print("▒▒",end = '')
+            elif j < 0.75: print("▓▓",end = '')
+            else:          print("██",end = '')
+        print("")

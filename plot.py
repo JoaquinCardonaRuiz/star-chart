@@ -1,11 +1,14 @@
 import math
 from log import Log 
 import curses
-import configparser
 import utils
 import time
-from ui import Panel
+from ui import Panel, Window, Static_Window, Floating_Window
+from terrain import Terrain
 from random import randint
+from config import Config
+from entities.bodies import Planet
+
 
 class Plot:
     """Graphics module for StarChart. Handles drawing all elements.
@@ -14,48 +17,63 @@ class Plot:
         x,y         -- Screen width and height
         posx, posy  -- Cursor coordinates on the board (0,0 in upper-left corner)
         panx, pany  -- Camera displacement from center 
-        middle      -- Coordinates of the center of the board
-        terrain     -- Instance of terrain class (terrain.py), which holds board state
-        config      -- Config file reader
         uis         -- Array of user interface elements
     """
 
-    def __init__(self, logger, config, terrain):
+    x,y = 0,0
+    panx,pany = 0,0
+    posx,posy = 0,0
+    uis = {'right': None, 'bottom': None, 'left': None, 'top': None, 'static': None}
+    scr = None
 
-        #TODO: Don't keep middle as an instance variable
-        #TODO: Reestructure UI elements' storage
-        #TODO: Create dict with ui elements {'right': UI(blah,right), 'bottom': UI(blah, bottom...)}
-        self.x ,self.y, self.panx, self.pany, self.posx, self.posy = 0,0,0,0,0,0
-        self.middle = [int(terrain.size[0]/2),int(terrain.size[1]/2)]
-        self.terrain = terrain
-        self.config = config
-        self.uis = []
-        logger.add('Plotter initialized')
-
-
-    def pan_camera(self, direction):
+    @classmethod
+    def pan_camera(cls, direction):
         """Takes a direction in the form of a character and moves cursor and camera appropriately."""
 
         #TODO: Rename method. It moves the cursor as well as panning the camera
-        if direction == 's' and self.posy < self.terrain.size[1]-1:
-            self.posy += 1
-            self.pany += 0.8
-        elif direction == 'w' and self.posy > 0:
-            self.posy -= 1
-            self.pany -= 0.8
-        elif direction == 'd' and self.posx < self.terrain.size[0] - 1:
-            self.posx += 1
-            self.panx += 1.6
-        elif direction == 'a' and self.posx > 0:
-            self.posx -= 1
-            self.panx -= 1.6
-        elif direction == 'e' and self.posy > 0 and self.posx < self.terrain.size[0] - 1:
-            self.posx += 1
-            self.panx += 1.6
-            self.posy -= 1
-            self.pany -= 0.8
+        y,x = cls.get_screen_coords(cls.posx, cls.posy)
+        if direction == 's' and cls.posy < Terrain.size[1]-1:
+            cls.posy += 1
+            if (y >= cls.y*0.8):
+                cls.pany += 1
+        elif direction == 'w' and cls.posy > 0:
+            cls.posy -= 1
+            if (y <= cls.y*0.2):
+                cls.pany -= 1
+        elif direction == 'd' and cls.posx < Terrain.size[0] - 1:
+            cls.posx += 1
+            if (x >= cls.x*0.8):
+                cls.panx += 2
+        elif direction == 'a' and cls.posx > 0:
+            cls.posx -= 1
+            if (x <= cls.x*0.2):
+                cls.panx -= 2
 
-    def start(self,logger):
+
+    @classmethod
+    def pan_terrain_camera(cls, direction, planet):
+        #TODO simplify panning ifs
+        cls.scr.addstr(1, 1, str(planet.panx)+ ", "+str(planet.pany), curses.color_pair(4))
+        if direction == 's' and planet.posy + 1 < Planet.sizes[str(planet.size)] - 1:
+            planet.posy += 1
+            if (planet.posy - planet.pany >= 0.8 * cls.uis["static"].get_size(cls.scr)[1]):
+                planet.pany += 1
+        elif direction == 'w' and planet.posy > 0:
+            planet.posy -= 1
+            if (planet.posy - planet.pany <= 0.2 * cls.uis["static"].get_size(cls.scr)[1]):
+                planet.pany -= 1
+        elif direction == 'd' and planet.posx < Planet.sizes[str(planet.size)] - 1:
+            planet.posx += 1
+            if (planet.posx * 2 - planet.panx*2 >= 0.8 * cls.uis["static"].get_size(cls.scr)[0]):
+                planet.panx += 1
+        elif direction == 'a' and planet.posx > 0:
+            planet.posx -= 1
+            if (planet.posx * 2 - planet.panx*2 <= 0.2 * cls.uis["static"].get_size(cls.scr)[0]):
+                planet.panx -= 1
+
+
+    @classmethod
+    def start(cls):
         """Initializes graphics engine, and returns an instance of the curses Screen class.
         
         Sets starting positions for cursor and camera, initializes color profiles and terminal settigs.
@@ -74,88 +92,99 @@ class Plot:
         curses.init_pair(4, curses.COLOR_WHITE, -1)
         curses.init_pair(5, curses.COLOR_BLACK, 7)
         scr.clear()
-        self.y, self.x = scr.getmaxyx()
-        self.y -= 1
-        self.panx = self.terrain.size[0] - int(self.x /2)
-        logger.add(str(self.x))
-        self.posx = self.middle[0]
-        self.posy = self.middle[1]
-        self.pany = 18 + int(0.5 * ((self.terrain.size[1] - int(self.y *2)))) 
-        return scr
+        cls.y, cls.x = scr.getmaxyx()
+        cls.y -= 1
+        cls.panx = Terrain.size[0] - int(cls.x /2)
+        Log.add(str(cls.x))
+        middle = [i//2 for i in Terrain.size]
+        cls.posx = middle[0]
+        cls.posy = middle[1]
+        cls.pany = 18 + int(0.5 * ((Terrain.size[1] - int(cls.y *2)))) 
+        cls.scr = scr
+        Log.add('Plotter initialized')
 
-    def draw_border(self,scr):
+
+    @classmethod
+    def draw_border(cls):
         """Draws the border that surrounds the screen."""
 
-        for i in range(1,self.x-1):
-            scr.addstr(0,i,self.config['Chars']['DHorizontal'])
-            scr.addstr(self.y,i,self.config['Chars']['DHorizontal'])
+        for i in range(1,cls.x-1):
+            cls.scr.addstr(0,i,Config.config['Chars']['DHorizontal'])
+            cls.scr.addstr(cls.y,i,Config.config['Chars']['DHorizontal'])
 
-        for j in range(1,self.y):
-            scr.addstr(j,0,self.config['Chars']['DVertical'])
-            scr.addstr(j,self.x-1,self.config['Chars']['DVertical'])
+        for j in range(1,cls.y):
+            cls.scr.addstr(j,0,Config.config['Chars']['DVertical'])
+            cls.scr.addstr(j,cls.x-1,Config.config['Chars']['DVertical'])
 
-        scr.addstr(0,0,self.config['Chars']['DUpperLeft'])
-        scr.addstr(0,self.x-1,self.config['Chars']['DUpperRight'])
-        scr.addstr(self.y,0,self.config['Chars']['DLowerLeft'])
+        cls.scr.addstr(0,0,Config.config['Chars']['DUpperLeft'])
+        cls.scr.addstr(0,cls.x-1,Config.config['Chars']['DUpperRight'])
+        cls.scr.addstr(cls.y,0,Config.config['Chars']['DLowerLeft'])
 
         #TODO: use draw method
         # https://stackoverflow.com/questions/36387625/curses-fails-when-calling-addch-on-the-bottom-right-corner
         try:
-            scr.addstr(self.y,self.x-1,self.config['Chars']['DLowerRight'])
+            cls.scr.addstr(cls.y,cls.x-1,Config.config['Chars']['DLowerRight'])
         except curses.error as e:
             pass
 
-        
-    def end(self,scr):
+    @classmethod
+    def end(cls):
         """Terminates graphics engine cleanly"""
 
         curses.nocbreak()
-        scr.keypad(False)
+        cls.scr.keypad(False)
         curses.echo()
         curses.endwin()
 
-
-    def draw(self, x, y, str, color, scr):
+    @classmethod
+    def draw(cls, x, y, str, color):
         """Draws a string or character on the screen.
         
         Keyword Arguments:
             x,y     -- Coordinates where first character will be drawn
             str     -- String or character to draw
             color   -- Color profile to use
-            scr     -- Instance of the Curses Screen object. The screen to draw on
         """
 
         #TODO: don't get scr as an argument, move scr to plotter
         try:
-            scr.addstr(-int(self.pany) + y, -int(self.panx) + x*2,str,curses.color_pair(color))
+            cY, cX = cls.get_screen_coords(x,y)
+            cls.scr.addstr(cY, cX, str,curses.color_pair(color))
         except curses.error as e:
             pass
 
 
-    def draw_orbits(self,scr):
+    @classmethod
+    def get_screen_coords(cls,x,y):
+        return (-int(cls.pany) + y, -int(cls.panx) + x*2)
+
+
+    @classmethod
+    def draw_orbits(cls):
         """ Draws the orbits stored in the Terrain instance around the star."""
 
         #TODO: use character from config file
-        #TODO: don't get scr as an argument, move scr to plotter
-        for r in self.terrain.orbits:
+        middle = [i//2 for i in Terrain.size]
+        for r in Terrain.orbits:
             to_add = utils.get_circle(r)
             for coord in to_add:
-                x,y = self.middle[0]+coord[0],self.middle[1]+coord[1]
-                self.draw(x, y, '.',4,scr)
+                x,y = middle[0]+coord[0],middle[1]+coord[1]
+                cls.draw(x, y, '.', 4)
                 
-
-    def draw_radius(self, ship, scr):
+    @classmethod
+    def draw_radius(cls, ship):
         """ Draws a circle around a ship indicating where it can move.
         
         Gets called when cursor is on top of ship. Calculates radius from ship's fuel.
         """
+
         to_add = utils.get_circle(ship.fuel,False)
         for coord in to_add:
-            x,y = self.posx + coord[0], self.posy + coord[1]
-            #self.draw(x, y, '░',233,scr)
-            self.draw(x, y, '.',2,scr)
+            x,y = cls.posx + coord[0], cls.posy + coord[1]
+            cls.draw(x, y, '.', 2)
 
-    def draw_lock(self, ship, scr,cx,cy):
+    @classmethod
+    def draw_lock(cls, ship, cx, cy):
         """ Draws a circle around a ship indicating where it can move when locked onto.
         
         Gets called when cursor is locked on ship. Calculates radius from ship's fuel.
@@ -165,48 +194,100 @@ class Plot:
         to_add = utils.get_circle(ship.fuel,False)
         for coord in to_add:
             x,y = cx + coord[0], cy + coord[1]
-            #self.draw(x, y, '░',233,scr)
-            self.draw(x, y, '.',3,scr)
+            cls.draw(x, y, '.', 3)
     
-    def draw_pointer(self,scr):
+    @classmethod
+    def draw_pointer(cls):
         """Draws cursor on screen."""
 
         #TODO: use different char for cursor when moving ship
         #TODO: rename to draw_cursor ?
         #TODO: read char from config file
-        self.draw(self.posx,self.posy, '░',4, scr)
+        cls.draw(cls.posx,cls.posy, '░', 4)
 
-    
-    def draw_UI(self,scr):
-        """Draws UI menus.
+    @classmethod
+    def draw_main_ui(cls):
+        """Draws UI menus. """
         
-        Currently only draws placeholders.
-        """
+        for i in cls.uis:
+            if cls.uis[i] is not None:
+                cls.uis[i].draw(cls.scr,cls.x,cls.y)
 
-        #TODO: Reestructure UI elements' storage
-        test_ui = Panel(["Ships", "Production","Resources"],"Left")
-        test_ui_right = Panel(["Colonies","Research","Pause"],"Right")
-        test_ui_top = Panel(["Map", "Info","Ship","Battle","Tech"],"Top")
-        test_ui_bottom = Panel(["Next Turn"],"Bottom")
-        test_ui.draw(scr,self.x,self.y)
-        test_ui_right.draw(scr,self.x,self.y)
-        test_ui_top.draw(scr,self.x,self.y)
-        test_ui_bottom.draw(scr,self.x,self.y)
+    @classmethod
+    def draw_terrain(cls, planet):
+        #creates static window
+        win = Plot.uis["static"]
+        Plot.uis["left"].draw(cls.scr,cls.x,cls.y)
+        Plot.uis["right"].draw(cls.scr,cls.x,cls.y)
+        win.draw(cls.scr)
+        
+        #limits horizontal panning to width of terrain
+        if win.width > len(planet.terrain)*2 - planet.panx*2 and planet.panx > 0:
+            planet.panx -= 1
 
-    def plot_terrain(self, scr):
+        #limits vertical panning to width of terrain
+        if win.height > len(planet.terrain[0]) - planet.pany and planet.pany > 0:
+            planet.pany -= 1
+
+        if planet.panx < 0:
+            planet.panx += 1
+        
+        if planet.pany <= 0:
+            planet.pany += 1
+
+        #draws terrain
+        for column in range(win.width):
+            for row in range(win.height):
+                #limits drawing to borders of window
+                if column +  planet.panx < len(planet.terrain) \
+                and column*2  < win.width \
+                and row + planet.pany < len(planet.terrain[0]) \
+                and column +  planet.panx >= 0 \
+                and row + planet.pany >= 0:
+                    tile = planet.terrain[column+int(planet.panx)][row+int(planet.pany)]
+                    if   tile.height < 0.25:  s = "░░"
+                    elif tile.height < 0.50:  s = "▒▒"
+                    elif tile.height < 0.75:  s = "▓▓"
+                    else:                     s = "██"
+                    if planet.posx == column+int(planet.panx) and planet.posy + 1 == row+int(planet.pany):
+                        s = "<>"
+                    x = win.x_margin+column*2+1
+                    y = win.y_margin+row+1
+                    cls.scr.addstr(y, x, s, curses.color_pair(4))
+
+        
+
+
+    @classmethod
+    def plot_terrain(cls):
         """Draws the state of the board, along with the orbit, pointers and ship's movement radius."""
         
         #TODO: rename to draw_state and create a new plot_terrain to handle the board
-        self.draw_orbits(scr)
-        self.draw_pointer(scr)
-        current = self.terrain.terrain[self.posx][self.posy]
+        cls.draw_orbits()
+        cls.draw_pointer()
+        current = Terrain.terrain[cls.posx][cls.posy]
         if current.search() == "Ship":
-            self.draw_radius(current,scr)
-        for column in range(len(self.terrain.terrain)):
-            for row in range(len(self.terrain.terrain[column])):
-                point = self.terrain.terrain[column][row]
+            cls.draw_radius(current)
+        for column in range(len(Terrain.terrain)):
+            for row in range(len(Terrain.terrain[column])):
+                point = Terrain.terrain[column][row]
                 if point.search():
                     color = 4
                     string = point.char
-                    self.draw(column, row, string, color, scr)
-        #self.terrain.orbit()
+                    cls.draw(column, row, string, color)
+
+
+    @classmethod
+    def set_ui(cls, s):
+        if s == "Terrain":
+            cls.uis["static"] = Static_Window(8,0)
+            cls.uis["left"] = Panel(["Temperature", "Elevation","Humidity"],"Left")
+            cls.uis["right"] = Panel(["Build", "Select","Remove"],"Right")
+
+
+        elif s == "Main":
+            cls.uis["static"] = None
+            cls.uis["left"] = Panel(["Ships", "Production","Resources"],"Left")
+            cls.uis["right"] = Panel(["Colonies","Research","Pause"],"Right")
+            cls.uis["bottom"] = Panel(["Next Turn"],"Bottom")
+            cls.uis["top"] = Panel(["Map", "Info","Ship","Battle","Tech"],"Top")

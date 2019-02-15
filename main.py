@@ -15,7 +15,7 @@ import time
 
 try:
     while True:
-        time.sleep(0.005)
+        #time.sleep(0.005)
         Logic.update_screen_size()
         Logic.draw_state()
         key = Logic.get_input()

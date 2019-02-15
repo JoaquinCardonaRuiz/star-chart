@@ -1,9 +1,9 @@
-from plot import Plot
 from entities.bodies import *
 from entities.ships import *
 from random import randint
-import configparser
+from config import Config
 from utils import dist,get_circle
+from log import Log
 
 class Terrain:
     """ Holds the state state of the StarChart board.
@@ -11,92 +11,103 @@ class Terrain:
     Class variables:
         size    -- Width and height of the board, in tiles
         terrain -- Two-dimmensional array which holds the objects on the board
-        config  -- Config file reader
         orbits  -- An array of integers which holds the radius of the orbits around the star
                    Planets are generated along these orbits
 
     """
-    def __init__(self, star_radius,logger,config):
-        self.size = (100,100)
-        self.terrain = [[Empty() for i in range(self.size[1])] for j in range(self.size[0])]
-        self.gen_star(star_radius)
-        self.config = config
-        self.orbits = []
-        self.gen_planets(int(self.config['Constants']['CantPlanets']))
-        self.spawn_tests()
-        
 
-    def spawn_tests(self):
+    size = (100,100)
+    terrain = []
+    orbits = []
+        
+    @classmethod
+    def start(cls,star_radius):
+        cls.terrain = [[Empty() for i in range(cls.size[1])] for j in range(cls.size[0])]
+        cls.gen_star(star_radius)
+        cls.gen_planets(int(Config.config['Constants']['CantPlanets']))
+        cls.spawn_tests()
+        Log.add('Terrain initialized')
+ 
+    @classmethod
+    def spawn_tests(cls):
         """Spawn test objects on the board."""
 
         #TODO: Create spawn(x,y,Object)
-        self.terrain[60][40] = TestShip()
-        self.terrain[0][0] = Marker()
-        self.terrain[0][0] = Marker()
-        self.terrain[0][0] = Marker()
-        self.terrain[0][0] = Marker()
+        cls.terrain[20][20] = TestShip()
+        cls.terrain[0][0] = Marker()
+        cls.terrain[0][0] = Marker()
+        cls.terrain[0][0] = Marker()
+        cls.terrain[0][0] = Marker()
 
-
-    def move(self,x1,y1,x2,y2):
+    @classmethod
+    def move(cls,x1,y1,x2,y2):
         """Move object in terrain[x1][y1] to terrain[x2][y2]."""
 
         #TODO: Move logic to logic.py
         distance = dist(x1,y1,x2,y2)
-        if self.terrain[x2][y2].search():
+        if cls.terrain[x2][y2].search():
             pass
-        elif self.terrain[x1][y1].search() and distance <= self.terrain[x1][y1].fuel:
-            self.terrain[x2][y2] = self.terrain[x1][y1]
-            self.terrain[x1][y1] = Empty()
-            self.terrain[x2][y2].deplete(distance)
+        elif cls.terrain[x1][y1].search() and distance <= cls.terrain[x1][y1].fuel:
+            cls.terrain[x2][y2] = cls.terrain[x1][y1]
+            cls.terrain[x1][y1] = Empty()
+            cls.terrain[x2][y2].deplete(distance)
         
-
-    def gen_star(self,star_radius):
+    @classmethod
+    def gen_star(cls,star_radius):
         """Spawns star in the middle of the board."""
 
-        middle = [int(self.size[0]/2),int(self.size[1]/2)]
-        self.terrain[middle[0]][middle[1]] = Star(star_radius)
+        middle = [int(cls.size[0]/2),int(cls.size[1]/2)]
+        cls.terrain[middle[0]][middle[1]] = Star(star_radius)
 
-
-    def gen_planets(self, cant):
+    @classmethod
+    def gen_planets(cls, cant):
         """Spawns planets along the generated orbits.
         
         Selects a random point in an orbit and creates a planet there an in its polar oppposite
         """
 
-        middle = [int(self.size[0]/2),int(self.size[1]/2)]
-        while len(self.orbits) < cant:
-            r = randint(6,int(self.size[0]/2))
+        middle = [int(cls.size[0]/2),int(cls.size[1]/2)]
+        cont = 0
+        while len(cls.orbits) < cant:
+            cont+=1
+            r = randint(6,int(cls.size[0]/2)-1)
             #If all the distances between orbits are greater than 4
-            if all([(abs(r-c) > 4) for c in self.orbits]):
-                self.orbits.append(r)
-        self.orbits.sort()
-        for d in self.orbits[:-1]:
+            if all([(abs(r-c) > 4) for c in cls.orbits]):
+                cls.orbits.append(r)
+            if cont > 50:
+                raise Exception("Can't place orbits")
+        cls.orbits.sort()
+        for d in cls.orbits[:-1]:
             orbit_coords = get_circle(d)
             coord = orbit_coords[randint(0,len(orbit_coords) - 1)]
-            self.terrain[middle[0] + coord[1]][middle[1] + coord[0]] = Planet(4)
-            self.terrain[middle[0] - coord[1]][middle[1] - coord[0]] = Planet(4)
+            #TODO: Don't randomize planet sizes
+            cls.terrain[middle[0] + coord[1]][middle[1] + coord[0]] = Planet(randint(1,4))
+            cls.terrain[middle[0] - coord[1]][middle[1] - coord[0]] = Planet(randint(1,4))
         
-        self.terrain[middle[0]][middle[1]+self.orbits[-1]] = CapitalPlanet(4)
-        self.terrain[middle[0]][middle[1]-self.orbits[-1]] = CapitalPlanet(4)
+        try:
+            cls.terrain[middle[0]][middle[1]+cls.orbits[-1]] = CapitalPlanet(4)
+            cls.terrain[middle[0]][middle[1]-cls.orbits[-1]] = CapitalPlanet(4)
+        except:
+            raise
 
-
-    def orbit(self):
+    @classmethod
+    def orbit(cls):
         """Causes objects around a planet to orbit along the surounding tiles each turn.
         
         Not in use.
         """
 
-        for x in range(len(self.terrain)):
-            for y in range(len(self.terrain[0])):
-                if self.terrain[x][y].search() == "Planet":
-                    aux = self.terrain[x+1][y]
-                    self.terrain[x+1][y] = self.terrain[x+1][y-1]
-                    self.terrain[x+1][y-1] = self.terrain[x][y-1]
-                    self.terrain[x][y-1] = self.terrain[x-1][y-1]
-                    self.terrain[x-1][y-1] = self.terrain[x-1][y]
-                    self.terrain[x-1][y] = self.terrain[x-1][y+1]
-                    self.terrain[x-1][y+1] = self.terrain[x][y+1]
-                    self.terrain[x][y+1] = self.terrain[x+1][y+1]
-                    self.terrain[x+1][y+1] = aux
+        for x in range(len(cls.terrain)):
+            for y in range(len(cls.terrain[0])):
+                if cls.terrain[x][y].search() == "Planet":
+                    aux = cls.terrain[x+1][y]
+                    cls.terrain[x+1][y] = cls.terrain[x+1][y-1]
+                    cls.terrain[x+1][y-1] = cls.terrain[x][y-1]
+                    cls.terrain[x][y-1] = cls.terrain[x-1][y-1]
+                    cls.terrain[x-1][y-1] = cls.terrain[x-1][y]
+                    cls.terrain[x-1][y] = cls.terrain[x-1][y+1]
+                    cls.terrain[x-1][y+1] = cls.terrain[x][y+1]
+                    cls.terrain[x][y+1] = cls.terrain[x+1][y+1]
+                    cls.terrain[x+1][y+1] = aux
 
 
