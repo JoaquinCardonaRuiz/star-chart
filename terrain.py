@@ -34,6 +34,10 @@ class Terrain:
 
         #TODO: Create spawn(x,y,Object)
         cls.terrain[20][20] = TestShip()
+        for i in range(15):
+            x,y = randint(0,cls.size[0]-1), randint(0,cls.size[1]-1)
+            if not cls.terrain[x][y].search():
+                cls.terrain[x][y] = Asteroid(2)
         cls.terrain[0][0] = Marker()
         cls.terrain[0][0] = Marker()
         cls.terrain[0][0] = Marker()
@@ -42,12 +46,14 @@ class Terrain:
     @classmethod
     def move(cls,x1,y1,x2,y2):
         """Move object in terrain[x1][y1] to terrain[x2][y2]."""
-
+        
         #TODO: Move logic to logic.py
         distance = dist(x1,y1,x2,y2)
         if cls.terrain[x2][y2].search():
+            Log.add("Ship movement failed, obstacle detected.")
             pass
-        elif cls.terrain[x1][y1].search() and distance <= cls.terrain[x1][y1].fuel:
+        elif distance <= cls.terrain[x1][y1].fuel:
+            Log.add("Moving ship from (" + str(x1) + ","+str(y1) +") to ("+ str(x2) + ","+str(y2)+")")
             cls.terrain[x2][y2] = cls.terrain[x1][y1]
             cls.terrain[x1][y1] = Empty()
             cls.terrain[x2][y2].deplete(distance)

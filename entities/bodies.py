@@ -1,10 +1,11 @@
 from utils import gen_height_map
+from utils import identify
 from entities.tile import Tile
 from random import randint
 
 class Empty:
     def __init__(self):
-        self.char = ''
+        self.identity = identify(self)
     
     def search(self):
         return(False)
@@ -15,7 +16,6 @@ class Star(Empty):
         Empty.__init__(self)
         self.radius = radius
         self.energy = radius*10
-        self.char = '✹'
     
     def search(self):
         return "Star"
@@ -23,6 +23,7 @@ class Star(Empty):
 
 class Asteroid(Empty):
     def __init__(self, size):
+        Empty.__init__(self)
         self.size = size
     
     def gen_shape():
@@ -47,7 +48,6 @@ class Planet(Empty):
         Empty.__init__(self)
         self.size = size
         self.type = planet_type
-        self.char = '⨁'
         if self.type == None:
             self.gen_type()
         self.terrain = self.gen_terrain()
@@ -72,7 +72,6 @@ class Planet(Empty):
 class CapitalPlanet(Planet):
     def __init__(self, size, planet_type = None):
         Planet.__init__(self,size, planet_type)
-        self.char = '◎'
 
     def search(self):
         return "Capital Planet"
@@ -81,7 +80,6 @@ class CapitalPlanet(Planet):
 class Marker(Empty):
     def __init__(self):
         Empty.__init__(self)
-        self.char = "AA"
     
     def search(self):
         return "Marker"

@@ -1,4 +1,6 @@
 import curses
+from utils import identify
+
 
 class Panel():
 
@@ -8,6 +10,12 @@ class Panel():
         self.border = self.gen_border()
         self.selected = len(lines) // 2
         self.focused = False
+        self.identity = identify(self)
+
+    def move_selection(self, n):
+        if not ((self.selected + n) >= len(self.lines) or (self.selected + n) < 0):
+            self.selected += n
+
 
     def gen_border(self):
         #TODO: decide if fixed or variable width for l/r
@@ -21,6 +29,12 @@ class Panel():
             x = sum([len(i) for i in self.lines]) + len(self.lines)*2 + 3
             y = 1
         return(x,y)
+
+    def toggle_focus(self):
+        if self.focused:
+            self.defocus()
+        elif not self.focused:
+            self.focus()
 
     def focus(self):
         if self.direction == "Top":
@@ -124,9 +138,12 @@ class Window():
     def __init__(self,width,height):
         self.width = width
         self.height = height
+        self.identity = identify(self)
         
-class Static_Window(Window):
+class Static_Window():
     def __init__(self,x_margin,y_margin):
+        self.identity = identify(self)
+        self.focused = True
         self.x_margin = x_margin*2
         self.y_margin = y_margin
         
@@ -162,7 +179,6 @@ class Static_Window(Window):
             scr.addstr(0,self.x_margin + self.width+1,"╦")
             scr.addstr(self.height+1,self.x_margin,"╩")
             scr.addstr(self.height+1,self.x_margin + self.width+1,"╩")
-        #╦╩ 
 
 class Floating_Window(Window):
     def __init__(self,x,y,width,height):

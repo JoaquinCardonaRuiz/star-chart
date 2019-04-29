@@ -1,12 +1,15 @@
+from utils import identify
+
 class Ship:
-    def __init__(self, health, fuel, char):
+    def __init__(self, health, fuel):
         self.fuel = fuel
         self.health = health
-        self.char = char
+        self.identity = identify(self)
 
     def search(self):
         return "Ship"
 
+    
     def deplete(self,dist):
         self.fuel -= dist
 
@@ -70,5 +73,5 @@ class TestShip(Ship):
     #A cheap, customizable ship to test weapons on
     #░
     def __init__(self):
-        Ship.__init__(self, 100, 10, '⍙')
-    pass
+        Ship.__init__(self, 100, 10)
+    

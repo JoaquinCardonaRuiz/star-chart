@@ -64,7 +64,7 @@ class Logic:
     @staticmethod
     def handle_lock():
         locked = Terrain.terrain[Logic.lock[0]][Logic.lock[1]]
-        if locked.search() == "Ship":
+        if "Ship" in locked.identity:
             Plot.draw_lock(Terrain.terrain[Logic.lock[0]][Logic.lock[1]],Logic.lock[0],Logic.lock[1])
         """
         elif locked.search() == "Planet":
@@ -103,17 +103,23 @@ class Logic:
 
             elif key == 'e':
                 if Logic.lock:
-                    if Terrain.terrain[Logic.lock[0]][Logic.lock[1]].search() == "Ship":
+                    Log.add("Trying to move ship...")
+                    if Terrain.terrain[Logic.lock[0]][Logic.lock[1]].identity[-1] == "Ship":
+                        Log.add("Ship id positive, moving...")
                         Terrain.move(Logic.lock[0], Logic.lock[1], Plot.posx, Plot.posy)
+                    else:
+                        Log.add("Not a ship")
                     Logic.lock = False
                 else:
-                    s = Terrain.terrain[Plot.posx][Plot.posy].search()
-                    if s:
+                    s = Terrain.terrain[Plot.posx][Plot.posy].identity
+                    if s != ["Empty"]:
                         Logic.lock = (Plot.posx,Plot.posy)
                         Log.add("Locked onto " +str(Logic.lock))
-                        if s == "Planet":
+                        if "Planet" in s:
                             Logic.stage = "Terrain"
                             Plot.set_ui(Logic.stage)
+                    else:
+                        Log.add("Nothing to lock onto")
                             
 
         if Logic.stage == "Terrain":
@@ -126,14 +132,59 @@ class Logic:
                 locked = Terrain.terrain[Logic.lock[0]][Logic.lock[1]]
                 Plot.pan_terrain_camera(key, locked)
 
-        uikeys = {"g": "left", "y": "top", "j": "right", "n": "bottom"}
+        selection_keys = {"g": "left", "y": "top", "j": "right", "n": "bottom"}
+        movement_keys = {"b":"bottom_left", "m":"bottom_right", "t":"top_left","u":"top_right"}
 
-        if key in list(uikeys.keys()):
-            Plot.uis[uikeys[key]].focus() 
+        if key in selection_keys.keys():
+            for ui in [i for i in Plot.uis if (Plot.uis[i] != None and i != "static")]:
+                Plot.uis[ui].defocus()
+            #if not(any([Plot.uis[i].focused if (Plot.uis[i] != None and "Window" not in Plot.uis[i].identity ) else False for i in Plot.uis])):
+            Plot.uis[selection_keys[key]].toggle_focus()
 
+        if key in movement_keys:
+            ui = [i for i in [i for i in Plot.uis if Plot.uis[i] != None] if Plot.uis[i].focused]
+            if ui != []:
+                ui = ui[0]
+            
+            if Plot.uis[ui].direction == "Left":
+                if key == "b":
+                    Plot.uis[ui].move_selection(1)
+                if key == "t":
+                    Plot.uis[ui].move_selection(-1)
+
+            if Plot.uis[ui].direction == "Right":
+                if key == "m":
+                    Plot.uis[ui].move_selection(1)
+                if key == "u":
+                    Plot.uis[ui].move_selection(-1)
+            
+            if Plot.uis[ui].direction == "Top":
+                if key == "u":
+                    Plot.uis[ui].move_selection(1)
+                if key == "t":
+                    Plot.uis[ui].move_selection(-1)
+            
+            if Plot.uis[ui].direction == "Bottom":
+                if key == "m":
+                    Plot.uis[ui].move_selection(1)
+                if key == "b":
+                    Plot.uis[ui].move_selection(-1)
+
+            #TODO: mover indice del panel
+
+
+        elif key == 'h':
+            Plot.uis["static"] = None
+            Logic.stage = "Main"
+            for win in Plot.uis:
+                try:
+                    Plot.uis[win].defocus()
+                except:
+                    pass
+        
 
     @staticmethod    
     def end():
         """Calls method to perform necessary steps for clean exit."""
 
-        Plot.end()
+        Plot.end()  

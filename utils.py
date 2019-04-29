@@ -74,3 +74,14 @@ def show(t):
             elif j < 0.75: print("▓▓",end = '')
             else:          print("██",end = '')
         print("")
+
+def identify(obj):
+    #creates an identity array for an object, which contains its class,
+    #superclass, and respective super-super-classes
+    identity = []
+    identity.append(obj.__class__)
+    while True:
+        try:
+            identity.append(identity[-1].__bases__[0])
+        except:
+            return [i.__name__ for i in identity[:-1]]

@@ -53,7 +53,7 @@ class Plot:
     @classmethod
     def pan_terrain_camera(cls, direction, planet):
         #TODO simplify panning ifs
-        cls.scr.addstr(1, 1, str(planet.panx)+ ", "+str(planet.pany), curses.color_pair(4))
+        cls.scr.addstr(1, 1, str(planet.posx)+ ", "+str(planet.posy), curses.color_pair(4))
         if direction == 's' and planet.posy + 1 < Planet.sizes[str(planet.size)] - 1:
             planet.posy += 1
             if (planet.posy - planet.pany >= 0.8 * cls.uis["static"].get_size(cls.scr)[1]):
@@ -78,8 +78,6 @@ class Plot:
         
         Sets starting positions for cursor and camera, initializes color profiles and terminal settigs.
         """
-
-        #TODO: have scr be saved in plotter, instead of returning it
         scr = curses.initscr()
         curses.noecho()
         curses.cbreak()
@@ -145,8 +143,6 @@ class Plot:
             str     -- String or character to draw
             color   -- Color profile to use
         """
-
-        #TODO: don't get scr as an argument, move scr to plotter
         try:
             cY, cX = cls.get_screen_coords(x,y)
             cls.scr.addstr(cY, cX, str,curses.color_pair(color))
@@ -236,7 +232,7 @@ class Plot:
             planet.pany += 1
 
         #draws terrain
-        for column in range(win.width):
+        for column in range(win.width-2):
             for row in range(win.height):
                 #limits drawing to borders of window
                 if column +  planet.panx < len(planet.terrain) \
@@ -266,14 +262,15 @@ class Plot:
         cls.draw_orbits()
         cls.draw_pointer()
         current = Terrain.terrain[cls.posx][cls.posy]
-        if current.search() == "Ship":
+        if "Ship" in current.identity:
             cls.draw_radius(current)
         for column in range(len(Terrain.terrain)):
             for row in range(len(Terrain.terrain[column])):
                 point = Terrain.terrain[column][row]
-                if point.search():
+                if point.identity[0] != "Empty":
                     color = 4
-                    string = point.char
+                    #string = point.char
+                    string = Config.chars['Chars'][point.identity[0]]                   
                     cls.draw(column, row, string, color)
 
 
