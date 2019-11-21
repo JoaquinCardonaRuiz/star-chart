@@ -15,6 +15,7 @@ import time
 
 try:
     while True:
+        #TODO: move most of this to Logic
         #time.sleep(0.005)
         Logic.update_screen_size()
         Logic.draw_state()

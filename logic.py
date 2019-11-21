@@ -1,8 +1,9 @@
 from log import Log
 from plot import Plot
-from terrain import Terrain
+from board import Board
 from config import Config
 from ui import *
+from states import State_Main, State_Terrain
 
 
 class Logic:
@@ -10,76 +11,69 @@ class Logic:
     
     Class variables:
         lock    -- Holds the coordinates of the locked object, False if nothing is locked
-        stage   -- Holds the screen UI is currently in
+        state   -- Holds the screen UI is currently in
     """
     
     #Initializing
     #TODO: make config file specific to plotter (config_plot.ini)
+    #TODO: review previous todo
     #TODO: implement turns and orbits around planets when turns pass
     
     
-    lock = False
     #stages = main, terrain, battle, tech, etc..
-    stage = "Main"
+    state = State_Main
+    state_chain = [state]
     Plot.start()
-    Plot.set_ui("Main")
-    Terrain.start(5)
+    Board.start(5)
+    State_Main.init()
     Log.add("Program started")
 
-    @staticmethod
-    def update_screen_size():
+    @classmethod
+    def update_screen_size(cls):
         """ Updates values of width and height of the screen (x,y) in plotter.
         
         If the terminal's size has changed, updates size values in the plotter"""
 
-        #TODO: move x,y to Logic, get them out of plotter
+        #TODO: mobve to  plotter
         y,x = Plot.scr.getmaxyx()
         if (Plot.y != y or Plot.x != x):
             Plot.y, Plot.x = Plot.scr.getmaxyx()
             Plot.y -= 1
         
-    @staticmethod
-    def refresh():
+    @classmethod
+    def refresh(cls):
         """Clears screen to draw next frame."""
+        #TODO: move to  plotter
 
         Logic.update_screen_size()
         Plot.scr.refresh()
         Plot.scr.clear()
     
-    @staticmethod
-    def draw_state():
+    @classmethod
+    def draw_state(cls):
         """Calls various methods in plotter module to draw the board and UI elements."""
-        if Logic.stage == "Main":
-            Plot.plot_terrain()
-            Plot.draw_border()
-            Plot.draw_main_ui()
-        if Logic.stage == "Terrain":
-            Plot.draw_border()
-            locked = Terrain.terrain[Logic.lock[0]][Logic.lock[1]]
-            Plot.draw_terrain(locked)
-        if Logic.lock:
-            Logic.handle_lock()
+        #TODO: this method became superflous
+        cls.state.plot()
 
 
-    @staticmethod
-    def handle_lock():
-        locked = Terrain.terrain[Logic.lock[0]][Logic.lock[1]]
+    @classmethod
+    def handle_lock(cls):
+        locked = Board.terrain[Logic.lock[0]][Logic.lock[1]]
         if "Ship" in locked.identity:
-            Plot.draw_lock(Terrain.terrain[Logic.lock[0]][Logic.lock[1]],Logic.lock[0],Logic.lock[1])
+            Plot.draw_lock(Board.terrain[Logic.lock[0]][Logic.lock[1]],Logic.lock[0],Logic.lock[1])
         """
         elif locked.search() == "Planet":
             Plot.draw_terrain(locked)
         """
  
 
-    @staticmethod
-    def get_input():
+    @classmethod
+    def get_input(cls):
         """Reads keyboard input from user"""
-
         return Plot.scr.getkey()
 
-    @staticmethod
-    def handle_input(key):
+    @classmethod
+    def handle_input(cls,key):
         """Takes the key pressed by the user and calls the appropiate method.
         
         Bindings:
@@ -90,101 +84,37 @@ class Logic:
             g h j
             b n m
         """
-        
-        if Logic.stage == "Main":
-            if key == "q":
-                Log.add("Closing Program...")
-                Logic.end()
-                Log.print()
-                exit()
-            
-            elif key in ['w','a','s','d']:
-                Plot.pan_camera(key)
+        #change will be False if there is no need to change stage
+        #if there is, change[0] will contain a string indicating either the stage
+        #or an instruction for moving in the stage chain (like "back")
+        #further indexes will contain the necessary arguments for the transition, like the object
+        change = cls.state.handle_input(key)
+        if change:
+            if change[0] == "end":
+                cls.end()
 
-            elif key == 'e':
-                if Logic.lock:
-                    Log.add("Trying to move ship...")
-                    if Terrain.terrain[Logic.lock[0]][Logic.lock[1]].identity[-1] == "Ship":
-                        Log.add("Ship id positive, moving...")
-                        Terrain.move(Logic.lock[0], Logic.lock[1], Plot.posx, Plot.posy)
-                    else:
-                        Log.add("Not a ship")
-                    Logic.lock = False
-                else:
-                    s = Terrain.terrain[Plot.posx][Plot.posy].identity
-                    if s != ["Empty"]:
-                        Logic.lock = (Plot.posx,Plot.posy)
-                        Log.add("Locked onto " +str(Logic.lock))
-                        if "Planet" in s:
-                            Logic.stage = "Terrain"
-                            Plot.set_ui(Logic.stage)
-                    else:
-                        Log.add("Nothing to lock onto")
-                            
+            elif change[0] == "terrain":
+                cls.state = State_Terrain
+                cls.state_chain.append(cls.state)
+                cls.state.init(change[1])
 
-        if Logic.stage == "Terrain":
-            if key == "q":
-                Logic.lock = False
-                Logic.stage = "Main"
-                Plot.set_ui(Logic.stage)
+            elif change[0] == "back":
+                cls.state_chain = cls.state_chain[:-1]
+                cls.state = cls.state_chain[-1]
 
-            elif key in ['w','a','s','d']:
-                locked = Terrain.terrain[Logic.lock[0]][Logic.lock[1]]
-                Plot.pan_terrain_camera(key, locked)
+            elif change[0] == "main":
+                cls.state_chain = cls.state_chain[0]
+                cls.state = cls.state_chain[0]
 
-        selection_keys = {"g": "left", "y": "top", "j": "right", "n": "bottom"}
-        movement_keys = {"b":"bottom_left", "m":"bottom_right", "t":"top_left","u":"top_right"}
+            Log.add(str(cls.state_chain))
 
-        if key in selection_keys.keys():
-            for ui in [i for i in Plot.uis if (Plot.uis[i] != None and i != "static")]:
-                Plot.uis[ui].defocus()
-            #if not(any([Plot.uis[i].focused if (Plot.uis[i] != None and "Window" not in Plot.uis[i].identity ) else False for i in Plot.uis])):
-            Plot.uis[selection_keys[key]].toggle_focus()
-
-        if key in movement_keys:
-            ui = [i for i in [i for i in Plot.uis if Plot.uis[i] != None] if Plot.uis[i].focused]
-            if ui != []:
-                ui = ui[0]
-            
-            if Plot.uis[ui].direction == "Left":
-                if key == "b":
-                    Plot.uis[ui].move_selection(1)
-                if key == "t":
-                    Plot.uis[ui].move_selection(-1)
-
-            if Plot.uis[ui].direction == "Right":
-                if key == "m":
-                    Plot.uis[ui].move_selection(1)
-                if key == "u":
-                    Plot.uis[ui].move_selection(-1)
-            
-            if Plot.uis[ui].direction == "Top":
-                if key == "u":
-                    Plot.uis[ui].move_selection(1)
-                if key == "t":
-                    Plot.uis[ui].move_selection(-1)
-            
-            if Plot.uis[ui].direction == "Bottom":
-                if key == "m":
-                    Plot.uis[ui].move_selection(1)
-                if key == "b":
-                    Plot.uis[ui].move_selection(-1)
-
-            #TODO: mover indice del panel
-
-
-        elif key == 'h':
-            Plot.uis["static"] = None
-            Logic.stage = "Main"
-            for win in Plot.uis:
-                try:
-                    Plot.uis[win].defocus()
-                except:
-                    pass
         
 
-    @staticmethod    
-    def end():
+    @classmethod    
+    def end(cls):
         """Calls method to perform necessary steps for clean exit."""
-
-        Plot.end()  
+        Plot.end()
+        Log.add('Exiting program')
+        Log.print()
+        raise
+        exit()

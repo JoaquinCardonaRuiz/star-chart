@@ -5,7 +5,7 @@ from config import Config
 from utils import dist,get_circle
 from log import Log
 
-class Terrain:
+class Board:
     """ Holds the state state of the StarChart board.
 
     Class variables:
@@ -26,7 +26,7 @@ class Terrain:
         cls.gen_star(star_radius)
         cls.gen_planets(int(Config.config['Constants']['CantPlanets']))
         cls.spawn_tests()
-        Log.add('Terrain initialized')
+        Log.add('Board initialized')
  
     @classmethod
     def spawn_tests(cls):

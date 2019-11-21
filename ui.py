@@ -16,18 +16,20 @@ class Panel():
         if not ((self.selected + n) >= len(self.lines) or (self.selected + n) < 0):
             self.selected += n
 
-
     def gen_border(self):
         #TODO: decide if fixed or variable width for l/r
-        if self.direction in ["Left","Right"]:
-            #Width is equal to the lenght of the longest item plus 2 for margins
-            x = 13#max(len(i) for i in self.lines) + 2
+        if self.direction in ["left","right"]:
+            #Width is equal to the lenght of the longest item plus 2 for margins... or 13, idk anymore
+            x = 13 #max(len(i) for i in self.lines) + 2
             y = len(self.lines)*4 + 2
-        elif self.direction in ["Top","Bottom"]:
+        elif self.direction in ["top","bottom"]:
             #Width is equal to the sum of the length of all the strings...
             #plus 2 spaces between words, plus 2 for margins
             x = sum([len(i) for i in self.lines]) + len(self.lines)*2 + 3
             y = 1
+        elif self.direction == "center":
+            x = 13
+            y = len(self.lines)*4 + 2
         return(x,y)
 
     def toggle_focus(self):
@@ -37,12 +39,12 @@ class Panel():
             self.focus()
 
     def focus(self):
-        if self.direction == "Top":
+        if self.direction == "top":
             self.border = [self.border[0], 3]
         self.focused = True
 
     def defocus(self):
-        if self.direction == "Top":
+        if self.direction == "top":
             self.border = [self.border[0], 1]
         self.focused = False
 
@@ -52,7 +54,7 @@ class Panel():
         #TODO: parametrize spaces between words
         #TODO: get margins in separate function
         #y-=1
-        if self.direction == "Left":
+        if self.direction == "left":
             margin = int((y - self.border[1])/2)
             #Draw top border
             scr.addstr(margin,0,"╠" + "═"*self.border[0] + "╗")
@@ -69,7 +71,7 @@ class Panel():
                     color = 4
                 scr.addstr(margin+(i*4)+3,2,self.lines[i],curses.color_pair(color))
 
-        if self.direction == "Right":
+        if self.direction == "right":
             margin = int((y - self.border[1])/2)
             #Draw top border
             scr.addstr(margin,x - (self.border[0]+2),"╔" + "═"*self.border[0] + "╣")
@@ -86,7 +88,7 @@ class Panel():
                     color = 4
                 scr.addstr(margin+(i*4)+3,x-2-len(self.lines[i]),self.lines[i],curses.color_pair(color))
 
-        if self.direction == "Top":
+        if self.direction == "top":
             margin = int((x - self.border[0])/2)
             #Draw left border
             scr.addstr(0,margin,"╦")
@@ -108,7 +110,7 @@ class Panel():
                 scr.addstr(self.border[1]//2 + 1, margin+3+shift+(2*i),self.lines[i],curses.color_pair(color))
                 shift += len(self.lines[i])
 
-        if self.direction == "Bottom":
+        if self.direction == "bottom":
             margin = int((x - self.border[0])/2)
             #Draw left border
             try:
@@ -132,7 +134,30 @@ class Panel():
                     color = 4
                 scr.addstr(y- (self.border[1]//2)-1, margin+3+shift+(2*i),self.lines[i],curses.color_pair(color))
                 shift += len(self.lines[i])
-        
+
+        if self.direction == "center":
+            marginY = int((y - self.border[1])/2)
+            marginX = int((x - self.border[0])/2)
+            try:
+                #Top border
+                scr.addstr(marginY,marginX,"╔" + "═"*self.border[0] + "╗")
+                #Bottom border
+                scr.addstr(y-marginY,marginX,"╚" +"═"*self.border[0] + "╝")
+                #Left Side
+                for i in range(1,self.border[1]+1):
+                    scr.addstr(marginY+i,marginX,"║"+" "*self.border[0])
+                #Right Side
+                for i in range(1,self.border[1]+1):
+                    scr.addstr(marginY+i,marginX+self.border[0]+1,"║"+" "*self.border[0])
+                #Draw items
+                for i in range(len(self.lines)):
+                    if self.selected == i and self.focused:
+                        color = 5
+                    else:
+                        color = 4
+                    scr.addstr(marginY+(i*4)+3,marginX+(self.border[0]//2)-len(self.lines[i])//2,self.lines[i],curses.color_pair(color))
+            except curses.error as e:
+                pass
 
 class Window():
     def __init__(self,width,height):
@@ -179,10 +204,4 @@ class Static_Window():
             scr.addstr(0,self.x_margin + self.width+1,"╦")
             scr.addstr(self.height+1,self.x_margin,"╩")
             scr.addstr(self.height+1,self.x_margin + self.width+1,"╩")
-
-class Floating_Window(Window):
-    def __init__(self,x,y,width,height):
-        x,y = self.get_size(x_margin,y_margin)
-        Window.__init__(self,x,y)
-
         
