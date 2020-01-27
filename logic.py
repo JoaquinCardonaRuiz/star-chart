@@ -98,6 +98,11 @@ class Logic:
                 cls.state_chain.append(cls.state)
                 cls.state.init(change[1])
 
+            elif change[0] in ["Minerals","Humidity","Elevation"]:
+                cls.state = State_Terrain
+                cls.state_chain[-1] = cls.state
+                cls.state.change_view(change[0])
+
             elif change[0] == "back":
                 cls.state_chain = cls.state_chain[:-1]
                 cls.state = cls.state_chain[-1]

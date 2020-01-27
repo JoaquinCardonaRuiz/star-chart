@@ -6,8 +6,8 @@ from log import Log
 import utils
 from ui import *
 
-class State():
-
+class State(metaclass=utils.Meta):
+    #We define utils.Meta as the metaclass to gain use of __repr__ for the class instead of the instance
     #uis = {}
 
     @classmethod
@@ -98,6 +98,7 @@ class State_Main(State):
 
     @classmethod
     def init(cls):
+        cls.string_repr = "Main State"
         cls.uis["static"] = None
         cls.uis["left"] = Panel(["Ships", "Production","Resources"],"left")
         cls.uis["right"] = Panel(["Colonies","Research","Pause"],"right")
@@ -219,6 +220,7 @@ class State_Main(State):
                     Log.add("Locked onto " +str(cls.lock))
                     if "Planet" in s:
                         planet = Board.terrain[cls.lock[0]][cls.lock[1]]
+                        Log.add(str(planet.characteristics))
                         cls.lock = False
                         return ["terrain",planet]
                 else:
@@ -253,9 +255,11 @@ class State_Terrain(State):
     @classmethod
     def init(cls,locked):
         cls.uis["static"] = Static_Window(8,0)
-        cls.uis["left"] = Panel(["Temperature", "Elevation","Humidity"],"left")
+        cls.uis["left"] = Panel(["Minerals", "Elevation","Humidity"],"left")
         cls.uis["right"] = Panel(["Build", "Select","Remove"],"right")
         cls.locked = locked
+        cls.view = "Elevation"
+        cls.string_repr = "Terrain State - " + cls.view
         Log.add('State set to terrain')
 
 
@@ -291,10 +295,21 @@ class State_Terrain(State):
                 and column +  cls.locked.panx >= 0 \
                 and row + cls.locked.pany >= 0:
                     tile = cls.locked.terrain[column+int(cls.locked.panx)][row+int(cls.locked.pany)]
-                    if   tile.height < 0.25:  s = "░░"
-                    elif tile.height < 0.50:  s = "▒▒"
-                    elif tile.height < 0.75:  s = "▓▓"
-                    else:                     s = "██"
+                    if cls.view == "Elevation":
+                        if   tile.height < 0.25:  s = "░░"
+                        elif tile.height < 0.50:  s = "▒▒"
+                        elif tile.height < 0.75:  s = "▓▓"
+                        else:                     s = "██"
+                    elif cls.view == "Minerals":
+                        if   tile.minerals < 1250:  s = "░░"
+                        elif tile.minerals < 2500:  s = "▒▒"
+                        elif tile.minerals < 3750:  s = "▓▓"
+                        else:                       s = "██"
+                    elif cls.view == "Humidity":
+                        if   tile.humidity < 0.25:  s = "░░"
+                        elif tile.humidity < 0.50:  s = "▒▒"
+                        elif tile.humidity < 0.75:  s = "▓▓"
+                        else:                       s = "██"
                     if cls.locked.posx == column+int(cls.locked.panx) and cls.locked.posy + 1 == row+int(cls.locked.pany):
                         s = "<>"
                     x = win.x_margin+column*2+1
@@ -337,6 +352,11 @@ class State_Terrain(State):
     def plot(cls):
         Plot.draw_border()
         cls.draw_terrain()
+
+    @classmethod
+    def change_view(cls,view):
+        cls.view = view
+        cls.string_repr = "Terrain State - " + cls.view
 
 class State_Pause(State):
     pass

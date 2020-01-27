@@ -66,14 +66,13 @@ def gen_height_map(size,jump,alpha):
     return t
 
 
-def show(t):
-    for i in t:
-        for j in i:
-            if   j < 0.25: print("░░",end = '')
-            elif j < 0.50: print("▒▒",end = '')
-            elif j < 0.75: print("▓▓",end = '')
-            else:          print("██",end = '')
-        print("")
+def get_sum_2d_matrix(matrix):
+    s = 0
+    for row in matrix:
+        for item in row:
+            s+=item
+    return s
+
 
 def identify(obj):
     #creates an identity array for an object, which contains its class,
@@ -85,3 +84,9 @@ def identify(obj):
             identity.append(identity[-1].__bases__[0])
         except:
             return [i.__name__ for i in identity[:-1]]
+
+
+class Meta(type):
+    #Metaclass that allows use of __repr__ for classes, instead of instances
+    def __repr__(cls):
+        return(cls.string_repr)

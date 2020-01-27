@@ -16,6 +16,7 @@ class Board:
 
     """
 
+    #TODO: board should always be square, so make this an unique size, and adjust code below to match
     size = (100,100)
     terrain = []
     orbits = []
@@ -87,12 +88,13 @@ class Board:
             orbit_coords = get_circle(d)
             coord = orbit_coords[randint(0,len(orbit_coords) - 1)]
             #TODO: Don't randomize planet sizes
-            cls.terrain[middle[0] + coord[1]][middle[1] + coord[0]] = Planet(randint(1,4))
-            cls.terrain[middle[0] - coord[1]][middle[1] - coord[0]] = Planet(randint(1,4))
+            #Solar distance is orbit_radius/(board_size/2) => 1 for capital planet, 0.5 for planet on the middle
+            cls.terrain[middle[0] + coord[1]][middle[1] + coord[0]] = Planet(randint(1,4),d/middle[0])
+            cls.terrain[middle[0] - coord[1]][middle[1] - coord[0]] = Planet(randint(1,4),d/middle[0])
         
         try:
-            cls.terrain[middle[0]][middle[1]+cls.orbits[-1]] = CapitalPlanet(4)
-            cls.terrain[middle[0]][middle[1]-cls.orbits[-1]] = CapitalPlanet(4)
+            cls.terrain[middle[0]][middle[1]+cls.orbits[-1]] = CapitalPlanet(4,cls.orbits[-1]/middle[0])
+            cls.terrain[middle[0]][middle[1]-cls.orbits[-1]] = CapitalPlanet(4,cls.orbits[-1]/middle[0])
         except:
             raise
 

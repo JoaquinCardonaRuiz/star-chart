@@ -19,7 +19,7 @@ class Fleet():
 
 
 class CapitalShip(Ship):
-    #Main ship in fleet. Self-sustaining, capable of ship and colony production, heavily armored
+    #Main ship in fleet. Self-sustaining, capable of ship and colony production, heavily armoured
     pass
 
 class Dreadnought(Ship):
@@ -73,5 +73,5 @@ class TestShip(Ship):
     #A cheap, customizable ship to test weapons on
     #░
     def __init__(self):
-        Ship.__init__(self, 100, 10)
+        Ship.__init__(self, 100, 50)
     

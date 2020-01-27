@@ -1,10 +1,11 @@
 class Tile():
 
     #TODO: measure temp in Kelvin, add option to display units as C/F
-    def __init__(self,height):
+    def __init__(self,height,minerals,humidity):
         self.char = ''
         self.height = height
-        self.temperature = 0
+        self.minerals = minerals
+        self.humidity = humidity
     
     def search(self):
         return(False)
