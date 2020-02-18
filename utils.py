@@ -86,6 +86,9 @@ def identify(obj):
             return [i.__name__ for i in identity[:-1]]
 
 
+def max2d(arr):
+    return max(map(max,arr))
+
 class Meta(type):
     #Metaclass that allows use of __repr__ for classes, instead of instances
     def __repr__(cls):

@@ -186,17 +186,45 @@ class Planet(Empty):
         jump = randint(4,10)/100
         alpha = 1+ randint(0,100)/100
         heights = utils.gen_height_map(size, jump, alpha)
-        #avg mineral content = richness * 500
-        #avg height * modifier = richness * 500
-        #richness * 500 / avg height = modifier
-        #(richness * 500) / (sum(height) / size^2) = modifier
-        modifier = (self.mineral_richness * 2500000) / (utils.get_sum_2d_matrix(heights) / math.pow(self.size,2))
-        minerals = [[i*modifier for i in j] for j in heights]
-        humidities = [[(1/(i+0.01)) for i in j] for j in heights]
+        minerals = self.get_minerals(heights)
+        humidities = [[(1 - i)*self.water_richness for i in j] for j in heights]
         
         #how many layers of abstraction are u on?
         terrain = [[Tile(height=tile[0],minerals=tile[1],humidity=tile[2]) for tile in row] for row in [list(zip(heights[i],minerals[i],humidities[i])) for i in range(len(heights))]]
         return terrain
+    
+    def get_minerals(self,heights):
+        """Determines mineral content in tiles"""
+        #The algorithm searches for points with a height near the maximum. If there are enough, it puts the mineral centers there
+        #If not, it widens the heights its willing to consider and checks again
+        min_dif = 0.02
+        max_val = utils.max2d(heights)
+        max_coords = [(ix,iy) for ix, row in enumerate(heights) for iy, i in enumerate(row) if abs(i-max_val)<min_dif]
+        for cx in max_coords:
+            for cy in max_coords:
+                if cx != cy and utils.dist(cx[0],cx[1],cy[0],cy[1]) < 10:
+                    max_coords.remove(cy)
+        while len(max_coords) < 10:
+            min_dif += 0.01
+            max_coords = [(ix,iy) for ix, row in enumerate(heights) for iy, i in enumerate(row) if abs(i-max_val)<min_dif]
+            for cx in max_coords:
+                for cy in max_coords:
+                    if cx != cy and utils.dist(cx[0],cx[1],cy[0],cy[1]) < 10:
+                        max_coords.remove(cy)
+        minerals = [[0 for i in j] for j in heights]
+        for c in max_coords:
+            minerals[c[0]][c[1]] = 5000
+            for i in range(1,6)[::-1]:
+                coords = utils.get_circle(i,True)
+                for j in coords:
+                    try:
+                        minerals[j[0]+c[0]][j[1]+c[1]] = 5000 - (800 * i)
+                    except:
+                        pass
+        return minerals
+
+
+
 
     def search(self):
         return "Planet"
