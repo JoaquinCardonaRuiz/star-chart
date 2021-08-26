@@ -19,10 +19,7 @@ try:
         #time.sleep(0.005)
         Logic.update_screen_size()
         Logic.draw_state()
-        key = Logic.get_input()
-        Logic.handle_input(key)
+        Logic.handle_input()
         Logic.refresh()
-except:
-    raise
-finally:    
-    Logic.end()
+except Exception as e:
+    Logic.end(exception = e)    

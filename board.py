@@ -4,6 +4,7 @@ from random import randint
 from config import Config
 from utils import dist,get_circle
 from log import Log
+import copy
 
 class Board:
     """ Holds the state state of the StarChart board.
@@ -39,10 +40,7 @@ class Board:
             x,y = randint(0,cls.size[0]-1), randint(0,cls.size[1]-1)
             if not cls.terrain[x][y].search():
                 cls.terrain[x][y] = Asteroid(2)
-        cls.terrain[0][0] = Marker()
-        cls.terrain[0][0] = Marker()
-        cls.terrain[0][0] = Marker()
-        cls.terrain[0][0] = Marker()
+
 
     @classmethod
     def move(cls,x1,y1,x2,y2):
@@ -89,12 +87,14 @@ class Board:
             coord = orbit_coords[randint(0,len(orbit_coords) - 1)]
             #TODO: Don't randomize planet sizes
             #Solar distance is orbit_radius/(board_size/2) => 1 for capital planet, 0.5 for planet on the middle
-            cls.terrain[middle[0] + coord[1]][middle[1] + coord[0]] = Planet(randint(1,4),d/middle[0])
-            cls.terrain[middle[0] - coord[1]][middle[1] - coord[0]] = Planet(randint(1,4),d/middle[0])
+            planet = Planet(randint(1,4),d/middle[0])
+            cls.terrain[middle[0] + coord[1]][middle[1] + coord[0]] = copy.deepcopy(planet)
+            cls.terrain[middle[0] - coord[1]][middle[1] - coord[0]] = copy.deepcopy(planet)
         
         try:
-            cls.terrain[middle[0]][middle[1]+cls.orbits[-1]] = CapitalPlanet(4,cls.orbits[-1]/middle[0])
-            cls.terrain[middle[0]][middle[1]-cls.orbits[-1]] = CapitalPlanet(4,cls.orbits[-1]/middle[0])
+            planet = CapitalPlanet(4,cls.orbits[-1]/middle[0])
+            cls.terrain[middle[0]][middle[1]+cls.orbits[-1]] = copy.deepcopy(planet)
+            cls.terrain[middle[0]][middle[1]-cls.orbits[-1]] = copy.deepcopy(planet)
         except:
             raise
 

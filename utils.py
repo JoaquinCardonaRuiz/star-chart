@@ -52,18 +52,22 @@ def get_circle(radius,fill = False,center=(0,0)):
         return pixels
 
 
-def gen_height_map(size,jump,alpha):
+def gen_height_map(size,jump):
     #jump shoud vary btw 0.04 and 0.8
-    #alpha between 1 and 2
     #h = seed
     h = randint(0,100)+(randint(0,1000)/1000)
     t = []
     for i in range(size):
         r=[]
         for j in range(size):
-            r.append(abs(pnoise2(h+i*jump,h+j*jump)) * alpha)
+            r.append(abs(pnoise2(h+i*jump,h+j*jump)))
         t.append(r)
-    return t
+
+    max_val = max2d(t)
+    min_val = min2d(t)
+    result = [[round((val - min_val) / (max_val - min_val),2) for val in row] for row in t]
+
+    return result
 
 
 def get_sum_2d_matrix(matrix):
@@ -87,7 +91,12 @@ def identify(obj):
 
 
 def max2d(arr):
+    # This method returns the maximum value in a 2d array
     return max(map(max,arr))
+
+def min2d(arr):
+    # This method returns the inimum value in a 2d array
+    return min(map(min,arr))
 
 class Meta(type):
     #Metaclass that allows use of __repr__ for classes, instead of instances

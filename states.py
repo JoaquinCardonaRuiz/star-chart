@@ -220,7 +220,6 @@ class State_Main(State):
                     Log.add("Locked onto " +str(cls.lock))
                     if "Planet" in s:
                         planet = Board.terrain[cls.lock[0]][cls.lock[1]]
-                        Log.add(str(planet.characteristics))
                         cls.lock = False
                         return ["terrain",planet]
                 else:
@@ -254,9 +253,12 @@ class State_Terrain(State):
 
     @classmethod
     def init(cls,locked):
-        cls.uis["static"] = Static_Window(8,0)
-        cls.uis["left"] = Panel(["Minerals", "Elevation","Humidity"],"left")
+        cls.uis["static"] = Static_Window(16,0)
+        cls.uis["left"] = Panel(["Info", "Minerals", "Elevation","Humidity"],"left")
         cls.uis["right"] = Panel(["Build", "Select","Remove"],"right")
+        cls.uis["info"] = Widget([{'label':'Height: ','value':0},
+                                  {'label':'Minerals: ','value':0},
+                                  {'label':'Humidity: ','value':0}])
         cls.locked = locked
         cls.view = "Elevation"
         cls.string_repr = "Terrain State - " + cls.view
@@ -267,8 +269,6 @@ class State_Terrain(State):
     def draw_terrain(cls):
         #TODO: do away with static window
         win = cls.uis["static"]
-        cls.uis["left"].draw(Plot.scr,Plot.x,Plot.y)
-        cls.uis["right"].draw(Plot.scr,Plot.x,Plot.y)
         win.draw(Plot.scr)
         
         #limits horizontal panning to width of terrain
@@ -296,19 +296,22 @@ class State_Terrain(State):
                 and row + cls.locked.pany >= 0:
                     tile = cls.locked.terrain[column+int(cls.locked.panx)][row+int(cls.locked.pany)]
                     if cls.view == "Elevation":
-                        if   tile.height < 0.25:  s = "░░"
-                        elif tile.height < 0.50:  s = "▒▒"
-                        elif tile.height < 0.75:  s = "▓▓"
+                        if   tile.height < 0.20:  s = "  "
+                        elif tile.height < 0.40:  s = "░░"
+                        elif tile.height < 0.60:  s = "▒▒"
+                        elif tile.height < 0.80:  s = "▓▓"
                         else:                     s = "██"
                     elif cls.view == "Minerals":
-                        if   tile.minerals < 1250:  s = "░░"
+                        if   tile.minerals == 0:    s = "  "
+                        elif tile.minerals < 1250:  s = "░░"
                         elif tile.minerals < 2500:  s = "▒▒"
                         elif tile.minerals < 3750:  s = "▓▓"
                         else:                       s = "██"
                     elif cls.view == "Humidity":
-                        if   tile.humidity < 0.25:  s = "░░"
-                        elif tile.humidity < 0.50:  s = "▒▒"
-                        elif tile.humidity < 0.75:  s = "▓▓"
+                        if   tile.humidity < 0.20:  s = "  "
+                        elif tile.humidity < 0.40:  s = "░░"
+                        elif tile.humidity < 0.60:  s = "▒▒"
+                        elif tile.humidity < 0.80:  s = "▓▓"
                         else:                       s = "██"
                     if cls.locked.posx == column+int(cls.locked.panx) and cls.locked.posy + 1 == row+int(cls.locked.pany):
                         s = "<>"
@@ -317,9 +320,19 @@ class State_Terrain(State):
                     Plot.scr.addstr(y, x, s, curses.color_pair(4))
 
     @classmethod
+    def draw_info(cls):
+        win = cls.uis["static"]
+        win.draw(Plot.scr)
+        for i,key in enumerate(cls.locked.characteristics.keys()):
+            s = key + ": " + str(cls.locked.characteristics[key]['value'])
+            if cls.locked.characteristics[key]['key']:
+                s += " (" + cls.locked.characteristics[key]['key']+")" 
+            Plot.scr.addstr(i+1,win.x_margin+2,s,curses.color_pair(4))
+
+
+    @classmethod
     def pan_terrain_camera(cls, direction):
         #TODO simplify panning ifs... good luck tho
-        Plot.scr.addstr(1, 1, str(cls.locked.posx)+ ", "+str(cls.locked.posy), curses.color_pair(4))
         if direction == 's' and cls.locked.posy + 1 < Planet.sizes[str(cls.locked.size)] - 1:
             cls.locked.posy += 1
             if (cls.locked.posy - cls.locked.pany >= 0.8 * cls.uis["static"].get_size(Plot.scr)[1]):
@@ -344,19 +357,34 @@ class State_Terrain(State):
 
         elif key in ['w','a','s','d']:
             #locked = Board.terrain[cls.lock[0]][cls.lock[1]]
-            cls.pan_terrain_camera(key)
+            if cls.view in ['Minerals','Elevation','Humidity']:
+                cls.pan_terrain_camera(key)
+                tile = cls.locked.terrain[cls.locked.posx][cls.locked.posy]
+                cls.uis["info"].update_all_values([tile.height,tile.minerals,tile.humidity])
 
         return cls.handle_ui_input(key)
 
     @classmethod
     def plot(cls):
         Plot.draw_border()
-        cls.draw_terrain()
+        cls.draw_ui()
+        if cls.view == "Info":
+            cls.draw_info()
+        else:
+            cls.draw_terrain()
+        
+
 
     @classmethod
     def change_view(cls,view):
         cls.view = view
         cls.string_repr = "Terrain State - " + cls.view
+        if cls.view in ['Minerals','Elevation','Humidity']:
+            cls.uis["info"] = Widget([{'label':'Height: ','value':0},
+                                  {'label':'Minerals: ','value':0},
+                                  {'label':'Humidity: ','value':0}])
+        else:
+            cls.uis['info'] = None
 
 class State_Pause(State):
     pass

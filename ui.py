@@ -19,8 +19,8 @@ class Panel():
     def gen_border(self):
         #TODO: decide if fixed or variable width for l/r
         if self.direction in ["left","right"]:
-            #Width is equal to the lenght of the longest item plus 2 for margins... or 13, idk anymore
-            x = 13 #max(len(i) for i in self.lines) + 2
+            #Width is equal to the lenght of the longest item plus 2 for margins
+            x = max(len(i) for i in self.lines) + 2
             y = len(self.lines)*4 + 2
         elif self.direction in ["top","bottom"]:
             #Width is equal to the sum of the length of all the strings...
@@ -178,7 +178,7 @@ class Static_Window():
         width,height = x - 2*self.x_margin-2, y - 2*self.y_margin-2
         return (width,height)
 
-    def draw(self,scr):
+    def draw(self,scr,x=0,y=0):
         width, height = self.get_size(scr)
         Window.__init__(self,width,height)
 
@@ -205,3 +205,48 @@ class Static_Window():
             scr.addstr(self.height+1,self.x_margin,"╩")
             scr.addstr(self.height+1,self.x_margin + self.width+1,"╩")
         
+class Widget():
+    def __init__(self,lines):
+        self.lines = lines
+        self.identity = identify(self)
+        self.focused = False
+
+    def get_width_height(self):
+        height = len(self.lines)
+
+        max_width = 0
+        for line in self.lines:
+            width = len(line['label']) + len(str(line['value']))
+            if width > max_width:
+                max_width = width
+
+        return (width+2,height+1)
+
+
+    def draw(self,scr,x,y):
+        #TODO: move this to plot.py
+        #TODO: generalize drawing algorithm
+        #TODO: parametrize spaces between words
+        #TODO: get margins in separate function
+
+        width, height = self.get_width_height()
+        #Draw top border
+        scr.addstr(0,width,"╦")
+        #Draw side border
+        for i in range(1,height+1):
+            scr.addstr(i,width,"║")
+        #Draw bottom border
+        scr.addstr(height,0,"╠" +"═"*(width-1)+ "╝")
+        #Draw items
+        for i,line in enumerate(self.lines):
+            scr.addstr(i+1,1,line['label']+str(line['value']))
+
+    def update_val(self,ix,value):
+        self.lines[ix]['value'] = value
+
+    def update_all_values(self, values):
+        if len(values) == len(self.lines):
+            for i,val in enumerate(values):
+                self.lines[i]['value'] = val
+        else:
+            raise(Exception('List of values to assign to widget does not match widget lines'))

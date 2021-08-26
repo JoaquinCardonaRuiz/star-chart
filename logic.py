@@ -73,7 +73,7 @@ class Logic:
         return Plot.scr.getkey()
 
     @classmethod
-    def handle_input(cls,key):
+    def handle_input(cls):
         """Takes the key pressed by the user and calls the appropiate method.
         
         Bindings:
@@ -88,6 +88,9 @@ class Logic:
         #if there is, change[0] will contain a string indicating either the stage
         #or an instruction for moving in the stage chain (like "back")
         #further indexes will contain the necessary arguments for the transition, like the object
+
+        key = cls.get_input()
+
         change = cls.state.handle_input(key)
         if change:
             if change[0] == "end":
@@ -98,7 +101,7 @@ class Logic:
                 cls.state_chain.append(cls.state)
                 cls.state.init(change[1])
 
-            elif change[0] in ["Minerals","Humidity","Elevation"]:
+            elif change[0] in ["Minerals","Humidity","Elevation","Info"]:
                 cls.state = State_Terrain
                 cls.state_chain[-1] = cls.state
                 cls.state.change_view(change[0])
@@ -116,10 +119,11 @@ class Logic:
         
 
     @classmethod    
-    def end(cls):
+    def end(cls, exception = ''):
         """Calls method to perform necessary steps for clean exit."""
         Plot.end()
+        if exception:
+            Log.add(str(exception))
         Log.add('Exiting program')
         Log.print()
-        raise
         exit()
