@@ -73,5 +73,5 @@ class TestShip(Ship):
     #A cheap, customizable ship to test weapons on
     #░
     def __init__(self):
-        Ship.__init__(self, 100, 50)
+        Ship.__init__(self, 100, 10)
     

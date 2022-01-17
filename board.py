@@ -117,5 +117,3 @@ class Board:
                     cls.terrain[x-1][y+1] = cls.terrain[x][y+1]
                     cls.terrain[x][y+1] = cls.terrain[x+1][y+1]
                     cls.terrain[x+1][y+1] = aux
-
-

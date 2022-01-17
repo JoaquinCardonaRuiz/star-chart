@@ -159,6 +159,67 @@ class Panel():
             except curses.error as e:
                 pass
 
+class ItemPanel(Panel):
+
+    def gen_border(self):
+        #TODO: decide if fixed or variable width for l/r
+        if self.direction in ["left","right"]:
+            #Width is equal to the lenght of the longest item plus 2 for margins
+            text_lens = []
+            for item in self.lines:
+                for text in item:
+                    text_lens.append(len(text))
+            x = max(text_lens) + 2
+            y = len(self.lines)*4 + 2
+        return(x,y)
+
+    def draw(self,scr,x,y):
+        #TODO: move this to plot.py
+        #TODO: generalize drawing algorithm
+        #TODO: parametrize spaces between words
+        #TODO: get margins in separate function
+        #y-=1
+        if self.direction == "left":
+            margin = int((y - self.border[1])/2)
+            #Draw top border
+            scr.addstr(margin,0,"╠" + "═"*self.border[0] + "╗")
+            #Draw side border
+            for i in range(1,self.border[1]+1):
+                scr.addstr(margin+i,1," "*self.border[0] + "║")
+            #Draw bottom border
+            scr.addstr(y-margin,0,"╠" +"═"*self.border[0] + "╝")
+            #Draw items
+            for i in range(len(self.lines)):
+                if self.selected == i and self.focused:
+                    color = 5
+                else:
+                    color = 4
+                scr.addstr(margin+(i*4)+3,2,self.lines[i],curses.color_pair(color))
+
+        if self.direction == "right":
+            margin = int((y - self.border[1])/2)
+            #Draw top border
+            scr.addstr(margin,x - (self.border[0]+2),"╔" + "═"*self.border[0] + "╣")
+            #Draw side border
+            for i in range(1,self.border[1]+1):
+                scr.addstr(margin+i,x - (self.border[0]+2),"║"+" "*self.border[0])
+            #Draw bottom border
+            scr.addstr(y-margin,x - (self.border[0]+2),"╚" + "═"*self.border[0] + "╣")
+            #Draw items
+            for i in range(len(self.lines)):
+                color = 4
+                scr.addstr(margin+(i*4)+1, x - (self.border[0]+2), "╠" + "-"*self.border[0] + "╣",curses.color_pair(color))
+                if self.selected == i and self.focused:
+                    color = 5
+                else:
+                    color = 4
+                scr.addstr(margin+(i*4)+2, x-2-len(self.lines[i][0]), self.lines[i][0],curses.color_pair(color))
+                scr.addstr(margin+(i*4)+3, x-2-len(self.lines[i][1]), self.lines[i][1],curses.color_pair(color))
+                scr.addstr(margin+(i*4)+4, x-2-len(self.lines[i][2]), self.lines[i][2],curses.color_pair(color))
+                color = 4
+                scr.addstr(margin+(i*4)+5, x - (self.border[0]+2), "╠" + "-"*self.border[0] + "╣",curses.color_pair(color))
+    
+
 class Window():
     def __init__(self,width,height):
         self.width = width

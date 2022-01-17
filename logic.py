@@ -20,7 +20,7 @@ class Logic:
     #TODO: implement turns and orbits around planets when turns pass
     
     
-    #stages = main, terrain, battle, tech, etc..
+    #states = main, terrain, battle, tech, etc..
     state = State_Main
     state_chain = [state]
     Plot.start()
@@ -105,6 +105,9 @@ class Logic:
                 cls.state = State_Terrain
                 cls.state_chain[-1] = cls.state
                 cls.state.change_view(change[0])
+
+            elif change[0] in ["Build", "Select", "Remove"]:
+                cls.state.change_action(change[0])
 
             elif change[0] == "back":
                 cls.state_chain = cls.state_chain[:-1]

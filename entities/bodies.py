@@ -247,12 +247,13 @@ class Planet(Empty):
         for c in max_coords:
             #for i in range(1,6)[::-1]:
             for i in range(6,7):
+                # TODO: fix get_circle
                 coords = utils.get_circle(i,True)
                 for j in coords:
                     # We just ignore out of index errors if a circle
                     # extends beyond the map of the planet
                     try:
-                        minerals[j[0]+c[0]][j[1]+c[1]] += 800
+                        minerals[j[0]+c[0]][j[1]+c[1]] += 200
                     except:
                         pass
         return minerals

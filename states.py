@@ -378,16 +378,29 @@ class State_Terrain(State):
     @classmethod
     def change_view(cls,view):
         cls.view = view
+        cls.change_action('Select')
         cls.string_repr = "Terrain State - " + cls.view
         if cls.view in ['Minerals','Elevation','Humidity']:
             cls.uis["info"] = Widget([{'label':'Height: ','value':0},
                                   {'label':'Minerals: ','value':0},
                                   {'label':'Humidity: ','value':0}])
         else:
-            cls.uis['info'] = None
+            cls.uis['info'] = None   
+
+    @classmethod
+    def change_action(cls,action):
+        cls.action = action
+        if cls.action == 'Select':
+            cls.uis["right"] = Panel(["Build", "Select","Remove"],"right")
+        
+        if cls.action == 'Build':
+            cls.uis["right"] = ItemPanel([['Item1','Item2abas','Item3'],
+                                          ['Item1','Item2','Item3fsafsafa'],
+                                          ['Item1sf','Item2','Item3']],"right")
 
 class State_Pause(State):
     pass
+
 
 class State_Ships(State):
     pass

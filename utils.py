@@ -25,6 +25,8 @@ def get_circle(radius,fill = False,center=(0,0)):
         center[0] -= radius
         center[1] += radius
         while (x >= y):
+            #TODO: fix this fill algorithm. It returns repeated
+            # coordinates
             if fill:
                 for i in range(-x,x):
                     for j in range(-y,y):
