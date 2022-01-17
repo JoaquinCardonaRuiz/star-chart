@@ -13,8 +13,11 @@ class Panel():
         self.identity = identify(self)
 
     def move_selection(self, n):
-        if not ((self.selected + n) >= len(self.lines) or (self.selected + n) < 0):
-            self.selected += n
+        self.selected += n
+        if self.selected >= len(self.lines):
+            self.selected = 0
+        if self.selected < 0:
+            self.selected = len(self.lines) - 1
 
     def gen_border(self):
         #TODO: decide if fixed or variable width for l/r

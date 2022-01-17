@@ -1,6 +1,7 @@
 from plot import Plot
 from board import Board
 from config import Config
+from entities.buildings import buildings
 from entities.bodies import Planet
 from log import Log
 import utils
@@ -394,9 +395,10 @@ class State_Terrain(State):
             cls.uis["right"] = Panel(["Build", "Select","Remove"],"right")
         
         if cls.action == 'Build':
-            cls.uis["right"] = ItemPanel([['Item1','Item2abas','Item3'],
-                                          ['Item1','Item2','Item3fsafsafa'],
-                                          ['Item1sf','Item2','Item3']],"right")
+            cls.uis["right"] = ItemPanel([building.item_repr() for building in buildings],"right")
+            cls.uis["right"].selected = 0
+            cls.uis["right"].focused = True
+            
 
 class State_Pause(State):
     pass
