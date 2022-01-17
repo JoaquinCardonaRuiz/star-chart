@@ -55,14 +55,15 @@ class Panel():
         #TODO: get margins in separate function
         #y-=1
         if self.direction == "left":
+            color = 4
             margin = int((y - self.border[1])/2)
             #Draw top border
-            scr.addstr(margin,0,"╠" + "═"*self.border[0] + "╗")
+            scr.addstr(margin,0,"╠" + "═"*self.border[0] + "╗",curses.color_pair(color))
             #Draw side border
             for i in range(1,self.border[1]+1):
-                scr.addstr(margin+i,1," "*self.border[0] + "║")
+                scr.addstr(margin+i,1," "*self.border[0] + "║",curses.color_pair(color))
             #Draw bottom border
-            scr.addstr(y-margin,0,"╠" +"═"*self.border[0] + "╝")
+            scr.addstr(y-margin,0,"╠" +"═"*self.border[0] + "╝",curses.color_pair(color))
             #Draw items
             for i in range(len(self.lines)):
                 if self.selected == i and self.focused:
@@ -72,14 +73,15 @@ class Panel():
                 scr.addstr(margin+(i*4)+3,2,self.lines[i],curses.color_pair(color))
 
         if self.direction == "right":
+            color = 4
             margin = int((y - self.border[1])/2)
             #Draw top border
-            scr.addstr(margin,x - (self.border[0]+2),"╔" + "═"*self.border[0] + "╣")
+            scr.addstr(margin,x - (self.border[0]+2),"╔" + "═"*self.border[0] + "╣",curses.color_pair(color))
             #Draw side border
             for i in range(1,self.border[1]+1):
-                scr.addstr(margin+i,x - (self.border[0]+2),"║"+" "*self.border[0])
+                scr.addstr(margin+i,x - (self.border[0]+2),"║"+" "*self.border[0],curses.color_pair(color))
             #Draw bottom border
-            scr.addstr(y-margin,x - (self.border[0]+2),"╚" + "═"*self.border[0] + "╣")
+            scr.addstr(y-margin,x - (self.border[0]+2),"╚" + "═"*self.border[0] + "╣",curses.color_pair(color))
             #Draw items
             for i in range(len(self.lines)):
                 if self.selected == i and self.focused:
@@ -89,17 +91,18 @@ class Panel():
                 scr.addstr(margin+(i*4)+3,x-2-len(self.lines[i]),self.lines[i],curses.color_pair(color))
 
         if self.direction == "top":
+            color = 4
             margin = int((x - self.border[0])/2)
             #Draw left border
             scr.addstr(0,margin,"╦")
             for i in range(self.border[1]):
-                scr.addstr(1+i,margin,"║"+" "*self.border[0])
+                scr.addstr(1+i,margin,"║"+" "*self.border[0],curses.color_pair(color))
             #Draw right border
-            scr.addstr(0,margin+self.border[0]+1,"╦")
+            scr.addstr(0,margin+self.border[0]+1,"╦",curses.color_pair(color))
             for i in range(self.border[1]):
-                scr.addstr(1+i,margin+self.border[0]+1,"║")
+                scr.addstr(1+i,margin+self.border[0]+1,"║",curses.color_pair(color))
             #Draw bottom border
-            scr.addstr(self.border[1]+1 ,margin,"╚" + "═"*self.border[0] + "╝")
+            scr.addstr(self.border[1]+1 ,margin,"╚" + "═"*self.border[0] + "╝",curses.color_pair(color))
             #Draw items
             shift = 0
             for i in range(len(self.lines)):
@@ -111,20 +114,21 @@ class Panel():
                 shift += len(self.lines[i])
 
         if self.direction == "bottom":
+            color = 4
             margin = int((x - self.border[0])/2)
             #Draw left border
             try:
-                scr.addstr(y,margin,"╩")
+                scr.addstr(y,margin,"╩",curses.color_pair(color))
             except curses.error as e:
                 pass
             for i in range(self.border[1]):
-                scr.addstr(y-i-1,margin,"║"+" "*self.border[0])
+                scr.addstr(y-i-1,margin,"║"+" "*self.border[0],curses.color_pair(color))
             #Draw right border
-            scr.addstr(y,margin+self.border[0]+1,"╩")
+            scr.addstr(y,margin+self.border[0]+1,"╩",curses.color_pair(color))
             for i in range(self.border[1]):
-                scr.addstr(y-1-i,margin+self.border[0]+1,"║")
+                scr.addstr(y-1-i,margin+self.border[0]+1,"║",curses.color_pair(color))
             #Draw top border
-            scr.addstr(y-self.border[1]-1,margin,"╔" + "═"*self.border[0] + "╗")
+            scr.addstr(y-self.border[1]-1,margin,"╔" + "═"*self.border[0] + "╗",curses.color_pair(color))
             #Draw items
             shift = 0
             for i in range(len(self.lines)):
@@ -136,19 +140,20 @@ class Panel():
                 shift += len(self.lines[i])
 
         if self.direction == "center":
+            color = 4
             marginY = int((y - self.border[1])/2)
             marginX = int((x - self.border[0])/2)
             try:
                 #Top border
-                scr.addstr(marginY,marginX,"╔" + "═"*self.border[0] + "╗")
+                scr.addstr(marginY,marginX,"╔" + "═"*self.border[0] + "╗",curses.color_pair(color))
                 #Bottom border
-                scr.addstr(y-marginY,marginX,"╚" +"═"*self.border[0] + "╝")
+                scr.addstr(y-marginY,marginX,"╚" +"═"*self.border[0] + "╝",curses.color_pair(color))
                 #Left Side
                 for i in range(1,self.border[1]+1):
-                    scr.addstr(marginY+i,marginX,"║"+" "*self.border[0])
+                    scr.addstr(marginY+i,marginX,"║"+" "*self.border[0],curses.color_pair(color))
                 #Right Side
                 for i in range(1,self.border[1]+1):
-                    scr.addstr(marginY+i,marginX+self.border[0]+1,"║"+" "*self.border[0])
+                    scr.addstr(marginY+i,marginX+self.border[0]+1,"║"+" "*self.border[0],curses.color_pair(color))
                 #Draw items
                 for i in range(len(self.lines)):
                     if self.selected == i and self.focused:
@@ -180,14 +185,15 @@ class ItemPanel(Panel):
         #TODO: get margins in separate function
         #y-=1
         if self.direction == "left":
+            color = 4
             margin = int((y - self.border[1])/2)
             #Draw top border
-            scr.addstr(margin,0,"╠" + "═"*self.border[0] + "╗")
+            scr.addstr(margin,0,"╠" + "═"*self.border[0] + "╗",curses.color_pair(color))
             #Draw side border
             for i in range(1,self.border[1]+1):
-                scr.addstr(margin+i,1," "*self.border[0] + "║")
+                scr.addstr(margin+i,1," "*self.border[0] + "║",curses.color_pair(color))
             #Draw bottom border
-            scr.addstr(y-margin,0,"╠" +"═"*self.border[0] + "╝")
+            scr.addstr(y-margin,0,"╠" +"═"*self.border[0] + "╝",curses.color_pair(color))
             #Draw items
             for i in range(len(self.lines)):
                 if self.selected == i and self.focused:
@@ -197,27 +203,25 @@ class ItemPanel(Panel):
                 scr.addstr(margin+(i*4)+3,2,self.lines[i],curses.color_pair(color))
 
         if self.direction == "right":
-            margin = int((y - self.border[1])/2)
-            #Draw top border
-            scr.addstr(margin,x - (self.border[0]+2),"╔" + "═"*self.border[0] + "╣")
+            color = 4
             #Draw side border
-            for i in range(1,self.border[1]+1):
-                scr.addstr(margin+i,x - (self.border[0]+2),"║"+" "*self.border[0])
-            #Draw bottom border
-            scr.addstr(y-margin,x - (self.border[0]+2),"╚" + "═"*self.border[0] + "╣")
+            for i in range(1,y):
+                scr.addstr(i,x - (self.border[0]+2),"║"+" "*self.border[0],curses.color_pair(color))
+            #Draw top border
+            scr.addstr(0, x - (self.border[0]+2), "╦" + "═"*self.border[0] + "╗",curses.color_pair(color))
             #Draw items
             for i in range(len(self.lines)):
-                color = 4
-                scr.addstr(margin+(i*4)+1, x - (self.border[0]+2), "╠" + "-"*self.border[0] + "╣",curses.color_pair(color))
+                if i != 0:
+                    scr.addstr((i*4), x - (self.border[0]+2), "╠" + "-"*self.border[0] + "╣",curses.color_pair(color))
                 if self.selected == i and self.focused:
                     color = 5
                 else:
                     color = 4
-                scr.addstr(margin+(i*4)+2, x-2-len(self.lines[i][0]), self.lines[i][0],curses.color_pair(color))
-                scr.addstr(margin+(i*4)+3, x-2-len(self.lines[i][1]), self.lines[i][1],curses.color_pair(color))
-                scr.addstr(margin+(i*4)+4, x-2-len(self.lines[i][2]), self.lines[i][2],curses.color_pair(color))
+                scr.addstr((i*4)+1, x-2-len(self.lines[i][0]), self.lines[i][0],curses.color_pair(color))
+                scr.addstr((i*4)+2, x-2-len(self.lines[i][1]), self.lines[i][1],curses.color_pair(color))
+                scr.addstr((i*4)+3, x-2-len(self.lines[i][2]), self.lines[i][2],curses.color_pair(color))
                 color = 4
-                scr.addstr(margin+(i*4)+5, x - (self.border[0]+2), "╠" + "-"*self.border[0] + "╣",curses.color_pair(color))
+                scr.addstr((i*4)+4, x - (self.border[0]+2), "╠" + "-"*self.border[0] + "╣",curses.color_pair(color))
     
 
 class Window():
@@ -240,31 +244,32 @@ class Static_Window():
         return (width,height)
 
     def draw(self,scr,x=0,y=0):
+        color = 4
         width, height = self.get_size(scr)
         Window.__init__(self,width,height)
 
         #draw top border
-        scr.addstr(self.y_margin,self.x_margin,"╔"+"═"*self.width+"╗")
+        scr.addstr(self.y_margin,self.x_margin,"╔"+"═"*self.width+"╗",curses.color_pair(color))
         
         #draw sides
         for i in range(self.height):
-            scr.addstr(self.y_margin+i+1,self.x_margin,"║"+ " "*self.width+"║")
+            scr.addstr(self.y_margin+i+1,self.x_margin,"║"+ " "*self.width+"║",curses.color_pair(color))
         
         #draw bottom border
-        scr.addstr(self.y_margin + self.height+1,self.x_margin,"╚" + "═"*self.width + "╝")
+        scr.addstr(self.y_margin + self.height+1,self.x_margin,"╚" + "═"*self.width + "╝",curses.color_pair(color))
 
         #if necessary, merge with border
         if self.x_margin == 0:
-            scr.addstr(self.y_margin,0,"╠")
-            scr.addstr(self.y_margin+self.height,0,"╠")
-            scr.addstr(self.y_margin,self.width+2,"╣")
-            scr.addstr(self.y_margin+self.height,self.width+2,"╣")
+            scr.addstr(self.y_margin,0,"╠",curses.color_pair(color))
+            scr.addstr(self.y_margin+self.height,0,"╠",curses.color_pair(color))
+            scr.addstr(self.y_margin,self.width+2,"╣",curses.color_pair(color))
+            scr.addstr(self.y_margin+self.height,self.width+2,"╣",curses.color_pair(color))
 
         if self.y_margin == 0:
-            scr.addstr(0,self.x_margin,"╦")
-            scr.addstr(0,self.x_margin + self.width+1,"╦")
-            scr.addstr(self.height+1,self.x_margin,"╩")
-            scr.addstr(self.height+1,self.x_margin + self.width+1,"╩")
+            scr.addstr(0,self.x_margin,"╦",curses.color_pair(color))
+            scr.addstr(0,self.x_margin + self.width+1,"╦",curses.color_pair(color))
+            scr.addstr(self.height+1,self.x_margin,"╩",curses.color_pair(color))
+            scr.addstr(self.height+1,self.x_margin + self.width+1,"╩",curses.color_pair(color))
         
 class Widget():
     def __init__(self,lines):
@@ -290,17 +295,18 @@ class Widget():
         #TODO: parametrize spaces between words
         #TODO: get margins in separate function
 
+        color = 4
         width, height = self.get_width_height()
         #Draw top border
-        scr.addstr(0,width,"╦")
+        scr.addstr(0,width,"╦",curses.color_pair(color))
         #Draw side border
         for i in range(1,height+1):
-            scr.addstr(i,width,"║")
+            scr.addstr(i,width,"║",curses.color_pair(color))
         #Draw bottom border
-        scr.addstr(height,0,"╠" +"═"*(width-1)+ "╝")
+        scr.addstr(height,0,"╠" +"═"*(width-1)+ "╝",curses.color_pair(color))
         #Draw items
         for i,line in enumerate(self.lines):
-            scr.addstr(i+1,1,line['label']+str(line['value']))
+            scr.addstr(i+1,1,line['label']+str(line['value']),curses.color_pair(color))
 
     def update_val(self,ix,value):
         self.lines[ix]['value'] = value
